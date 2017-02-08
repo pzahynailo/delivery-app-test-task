@@ -227,9 +227,9 @@ function incrementItem(itemId, storeId, price, name, noToast) {
     itemObject.quantity = 1;
     itemObject.price = price;
     itemObject.sum = price;
-
+    
     var storeObject = {};
-    getStore(storeId, (store) => {
+    getStore(storeId, function (store) {
       store = JSON.parse(store);
       storeObject.name = store.stores[0].name;
       storeObject.image = store.stores[0].image;
@@ -390,12 +390,12 @@ function renderCartPage() {
 
 function renderStorePage(storeId) {
   var page = document.querySelector('.single-store.page');
-  getItems(storeId, (items) => {
+  getItems(storeId, function (items)  {
     items = JSON.parse(items);
     renderTemplate('.single-store.page', '#single-store-template', items, '#single-store-row');
 
   })
-  getStore(storeId, (store) => {
+  getStore(storeId, function (store) {
     store = JSON.parse(store);
     renderTemplate(null, '#storename-template', store.stores[0], '.brand-logo.center.storename');
 
@@ -405,7 +405,7 @@ function renderStorePage(storeId) {
 
 
 function renderStoresOfType(currentCity, type) {
-  getStores(currentCity, type, (stores) => {
+  getStores(currentCity, type, function (stores) {
     stores = JSON.parse(stores);
 
     var template = document.getElementById("storelist-template").innerHTML;
