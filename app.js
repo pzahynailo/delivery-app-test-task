@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 var async = require('async')
 var monk = require('monk')
 
+var port = 3000;
 var app = express()
 var mongo = require('mongodb')
 const db = monk('localhost:27017/gorilladb')
@@ -210,6 +211,6 @@ app.get('/api/:version/cities', (req, res) => {
     }
 })
 
-app.listen(80, '0.0.0.0', function () {
-    console.log('Example app listening on port 80!')
+app.listen(port, '0.0.0.0', function () {
+    console.log('app listening on port ' + port)
 })

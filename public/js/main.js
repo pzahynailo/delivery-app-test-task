@@ -1,4 +1,6 @@
-var host = 'http://kolo.od.ua'
+var host = 'http://188.115.141.92';
+var port = 3000;
+var root = host + ':' + port;
 var ODESSA = "588cf6e7d263bce41074cf0c";
 var LVIV = "588cf6e7d263bce41074cf0d";
 var defaultCity = ODESSA;
@@ -15,7 +17,7 @@ var order = {
   sum: 0
 }
 
-var storesItems;
+var storesItems = {};
 
 
 $(document).ready(function () {
@@ -130,7 +132,12 @@ function renderInitialPage() {
 
     var lis = document.querySelectorAll('#navHorizontal-allstores li');
     for (var i = 0; i < lis.length; i++) {
-      lis[i].addEventListener('click', renderStoresOfType(currentCity, storetypes.storetypes[i]._id), false)
+      lis[i].addEventListener('click', function(foo,bar) {
+        return function() {
+          renderStoresOfType(foo,bar)
+        }
+        
+      }(currentCity, storetypes.storetypes[i]._id) , false)
     }
 
     template = document.querySelector("#storelistUL-template").innerHTML;
@@ -143,11 +150,13 @@ function renderInitialPage() {
 
 
     $('ul.tabs').tabs('select_tab', storetypes.storetypes[0]._id);
+    
 
     $('ul.tabs').tabs();
 
-
+    document.getElementById('tab' + storetypes.storetypes[0]._id).dispatchEvent(new Event('click'));
   })
+  //
   window.location.hash = '#'
   page.classList.add('visible');
 
@@ -405,12 +414,10 @@ function renderStorePage(storeId) {
 
 
 function renderStoresOfType(currentCity, type) {
-  getStores(currentCity, type, function (stores) {
-    stores = JSON.parse(stores);
-
+  if (storesItems !== undefined && storesItems[type] !== undefined) {
     var template = document.getElementById("storelist-template").innerHTML;
     var compiledTemplate = Handlebars.compile(template);
-    var rendered = compiledTemplate(stores);
+    var rendered = compiledTemplate(storesItems[type]);
     document.getElementById(type).innerHTML = rendered;
 
     var storesDOM = document.getElementById(type).children;
@@ -420,8 +427,26 @@ function renderStoresOfType(currentCity, type) {
         window.location.hash = "store/" + id;
       }, false)
     }
+  }
+  else {
+    getStores(currentCity, type, function (stores) {
+      stores = JSON.parse(stores);
+      storesItems[type] = stores;
+      var template = document.getElementById("storelist-template").innerHTML;
+      var compiledTemplate = Handlebars.compile(template);
+      var rendered = compiledTemplate(stores);
+      document.getElementById(type).innerHTML = rendered;
 
-  })
+      var storesDOM = document.getElementById(type).children;
+      for (var i = 0; i < storesDOM.length; i++) {
+        let id = storesDOM[i].id;
+        storesDOM[i].addEventListener('click', function () {
+          window.location.hash = "store/" + id;
+        }, false)
+      }
+
+    })
+  }
 }
 
 function renderErrorPage() {
@@ -433,9 +458,9 @@ function renderErrorPage() {
 var getItems = function (store, callback) {
   var xhr = new XMLHttpRequest();
   if (store !== undefined)
-    xhr.open('get', host + '/api/v1/items?store=' + store, true);
+    xhr.open('get', root + '/api/v1/items?store=' + store, true);
   else
-    xhr.open('get', host + '/api/v1/items', true);
+    xhr.open('get', root + '/api/v1/items', true);
 
   xhr.onload = function () {
     if (xhr.status === 200) {
@@ -451,11 +476,11 @@ var getItems = function (store, callback) {
 function getStores(city, type, callback) {
   var xhr = new XMLHttpRequest();
   if (city !== undefined && type == undefined)
-    xhr.open('GET', host + '/api/v1/stores/?city=' + city, true);
+    xhr.open('GET', root + '/api/v1/stores/?city=' + city, true);
   else if (city !== undefined && type !== undefined) {
-    xhr.open('GET', host + '/api/v1/stores/?city=' + city + '&type=' + type, true);
+    xhr.open('GET', root + '/api/v1/stores/?city=' + city + '&type=' + type, true);
   }
-  else xhr.open('GET', host + '/api/v1/stores/', true);
+  else xhr.open('GET', root + '/api/v1/stores/', true);
   xhr.onload = function () {
     if (xhr.status === 200) {
       var stores = xhr.responseText;
@@ -468,7 +493,7 @@ function getStores(city, type, callback) {
 /*get store by id*/
 function getStore(id, callback) {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', host + '/api/v1/stores/?id=' + id, true);
+  xhr.open('GET', root + '/api/v1/stores/?id=' + id, true);
   xhr.onload = function () {
     if (xhr.status === 200) {
       var store = xhr.responseText;
@@ -481,8 +506,8 @@ function getStore(id, callback) {
 function getStoretypes(city, callback) {
   var xhr = new XMLHttpRequest();
   if (city !== undefined)
-    xhr.open('GET', host + '/api/v1/storetypes/?city=' + city, true);
-  else xhr.open('GET', host + '/api/v1/storetypes/', true);
+    xhr.open('GET', root + '/api/v1/storetypes/?city=' + city, true);
+  else xhr.open('GET', root + '/api/v1/storetypes/', true);
   var context;
   xhr.onload = function () {
     if (xhr.status == 200) {

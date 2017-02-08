@@ -55,7 +55,7 @@
 						</ul>
 						<script id="storetypelist-template" type="text/x-handlebars-template">
 								{{#each storetypes}}
-									<li class="tab"><a href="#{{_id}}">{{name}}</a></li>
+									<li class="tab" id = 'tab{{_id}}'><a href="#{{_id}}">{{name}}</a></li>
 								{{/each}}
 								<div id="test"></div>
 						</script>
@@ -74,8 +74,8 @@
 				<div class="modal-content">
 					<h4 class='center'>Выбор города</h4>
 					<div class='center'>
-						<a class='btn modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; setCookie('cityId', '588cf6e7d263bce41074cf0c', 1); orderItems = []; renderInitialPage()">Одесса</a>
-						<a class="btn modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; setCookie('cityId', '588cf6e7d263bce41074cf0d', 1); orderItems = []; renderInitialPage()">Львов</a>
+						<a class='btn modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; storesItems ={}; setCookie('cityId', '588cf6e7d263bce41074cf0c', 1); order = {orderItems: [],sum: 0}; renderInitialPage()">Одесса</a>
+						<a class="btn modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; storesItems ={}; setCookie('cityId', '588cf6e7d263bce41074cf0d', 1);  order = {orderItems: [],sum: 0}; renderInitialPage()">Львов</a>
 					</div>
 				</div>
 			</div>
