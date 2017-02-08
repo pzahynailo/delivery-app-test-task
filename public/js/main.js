@@ -1,4 +1,4 @@
-var host = 'http://192.168.0.104:3000'
+var host = 'http://kolo.od.ua'
 var ODESSA = "588cf6e7d263bce41074cf0c";
 var LVIV = "588cf6e7d263bce41074cf0d";
 var defaultCity = ODESSA;
