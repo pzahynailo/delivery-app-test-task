@@ -46,7 +46,7 @@
 								<a class="waves-effect waves-light" href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button" data-beloworigin="false" data-activates="dropdown-all-stores"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button" data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -65,60 +65,17 @@
 				</nav>
 			</div>
 		
-			<ul class="dropdown-content" id='dropdown-all-stores'>
-				<li><a href="#delivery">Условия доставки</a></li>
-				<li><a href="">Контакты</a></li>
-				<li><a href="#city-modal">Выбор города</a></li>
-			</ul>
-			<div class="modal" id="city-modal">
-				<div class="modal-content">
-					<h4 class='center'>Выбор города</h4>
-					<div class='center'>
-						<a class='btn modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; storesItems ={}; setCookie('cityId', '588cf6e7d263bce41074cf0c', 1); order = {orderItems: [],sum: 0}; renderInitialPage()">Одесса</a>
-						<a class="btn modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; storesItems ={}; setCookie('cityId', '588cf6e7d263bce41074cf0d', 1);  order = {orderItems: [],sum: 0}; renderInitialPage()">Львов</a>
-					</div>
-				</div>
-			</div>
 			
-			<div class="modal modal-login" id="loginModal" role="dialog">
+
+			<div class="modal modal-ordered" id="orderedModal" role="dialog">
 				<div class="modal-content">
-					<span class="row">
-						<h4 class='col xs10'>Авторизация</h4>
+					<div class="row">
+						<h5 class='col xs10'>Заказ оформлен!</h5>
 						<a href='#' class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
-					</span>
-					<div class='row'>
-						<form class="col xs12">
-							<div class="row">
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="email" class='validate' id="email">
-									<label for="email">Email</label>
-								</div>
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="password" class="validate" id="password">
-									<label for="password">Password</label>
-								</div>
-							</div>
-							<div class="row">
-
-								<div class="col xs12 m5">
-									<input type="checkbox" id="rememberme">
-									<label for="rememberme">Remember Me</label>
-								</div>
-								<a href="#" class="btn waves-effect waves-green col xs12 m7">Войти</a>
-							</div>
-
-						</form>
 					</div>
-					<br>
-					<div class="modal-footer row">
-						<span class='col xs12 m5'>Нет аккаунта?</span>
-						<a href='#register' class='modal-action modal-close waves-effect waves-green btn col xs12 m7'>Создать</a>
-					</div>
+					<p>В скором времени с вами свяжется оператор для подтверждения заказа</p>
 				</div>
-
-			</div>
-			
-			
+			</div>			
 			
 			
 			<div class="collections row" id="store-list">
@@ -138,7 +95,7 @@
 					{{#each stores}}
 						
 							<li class="collection-item waves-effect  avatar" id="{{_id}}">
-								<img src="http://placehold.it/400x200" alt="{{name}}" class="circle">
+								<img src="http://placehold.it/400/200/" alt="{{name}}" class="circle">
 								<span class="title">{{name}}</span>
 								<p>{{#if description}} {{description}} <br>{{/if}} <span class="address">{{address}}</span></p>
 								<a class="secondary-content">₴lul</a>
@@ -155,8 +112,6 @@
 		</div>
 		
 
-
-
 		<div class="single-store page">
 			<!--navbar-->
 			<div class="navbar-fixed single-store">
@@ -166,10 +121,14 @@
 						<!--<a href="#" class='btn btn-flat' style='height: 56px;'></a>-->
 
 
+						<ul class="left">
+							<li>
+								<a class=" waves-effect waves-light" onclick="goBack()">
+									<i class="material-icons " style='color:white;'>keyboard_backspace</i>
+								</a>
+							</li>
+						</ul>
 						
-						<a class="left btn-flat waves-effect waves-light" onclick="goBack()">
-							<i class="material-icons " style='color:white;'>keyboard_backspace</i>
-						</a>
 
 						<a class="brand-logo center storename">
 
@@ -177,10 +136,10 @@
 
 						<ul class="right">
 							<li>
-								<a class="waves-effect waves-light   " href="#loginModal-single-store"><i class="material-icons ">account_circle</i></a>
+								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdown-single-store"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -188,97 +147,6 @@
 
 				</nav>
 			</div>
-			
-			<ul class="dropdown-content" id='dropdown-single-store'>
-				<li><a href="#delivery">Условия доставки</a></li>
-				<li><a href="">Контакты</a></li>
-				<li><a href="#city-modal-single-store">Выбор города</a></li>
-			</ul>
-			<div class="modal" id="city-modal-single-store">
-				<div class="modal-content">
-					<h4 class='center'>Выбор города</h4>
-					<div class='center'>
-						<a class='btn-flat modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; orderItems = []; renderInitialPage()">Одесса</a>
-						<a class="btn-flat modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; orderItems = []; renderInitialPage()">Львов</a>
-					</div>
-				</div>
-			</div>
-			
-			<div class="modal modal-login" id="loginModal-single-store" role="dialog">
-				<div class="modal-content">
-					<span class="row">
-						<h4 class='col xs10'>Авторизация</h4>
-						<a href='#' class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
-					</span>
-					<div class='row'>
-						<form class="col xs12">
-							<div class="row">
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="email" class='validate' id="email">
-									<label for="email">Email</label>
-								</div>
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="password" class="validate" id="password">
-									<label for="password">Password</label>
-								</div>
-							</div>
-							<div class="row">
-
-								<div class="col xs12 m5">
-									<input type="checkbox" id="rememberme">
-									<label for="rememberme">Remember Me</label>
-								</div>
-								<a href="#" class="btn waves-effect waves-green col xs12 m7">Войти</a>
-							</div>
-
-						</form>
-					</div>
-					<br>
-					<div class="modal-footer row">
-						<span class='col xs12 m5'>Нет аккаунта?</span>
-						<a href='#register' class='modal-action modal-close waves-effect waves-green btn col xs12 m7'>Создать</a>
-					</div>
-				</div>
-
-			</div>
-
-			<!--TODO - FORM AND SETTINGS-->
-			<!--<div class="modal" id="loginModal-single-store" role="dialog">
-				<div class="modal-content">
-					<h4>Account and Settings</h4>
-					<div class='row'>
-						<form class="col xs12">
-							<div class="row">
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="email" class='validate' id="email">
-									<label for="email">Email</label>
-								</div>
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="password" class="validate" id="password">
-									<label for="password">Password</label>
-								</div>
-							</div>
-							<div class="row">
-
-								<div class="col xs12 s3 m6">
-									<input type="checkbox" id="rememberme">
-									<label for="rememberme">Remember Me</label>
-								</div>
-								<div class="col xs12 s4 offset-s4 m6">
-									<a href="#!" class="btn btn-raised waves-effect waves-green yellow accent-4">Login</a>
-								</div>
-							</div>
-							<hr/>
-
-						</form>
-					</div>
-
-					<div class="modal-footer">
-						<a href='#' class='modal-action modal-close waves-effect waves-green btn-flat'>Agree</a>
-					</div>
-				</div>
-
-			</div>-->
 
 
 			<div class="container">
@@ -291,14 +159,15 @@
 					<div class="col xs12 s6 m4 l3">
 						<div class="card" id = "{{_id}}">
 							<div class="card-image">
-								<img class="activator resizeimg" src="http://placehold.it/400x400">
-								<a class="btn-floating halfway-fab waves-effect waves-light cyan darken-2" onclick="incrementItem('{{_id}}', '{{storeId}}', '{{price}}', '{{name}}')"><i class="material-icons">add</i></a>
+								<img class="activator resizeimg" src="http://placehold.it/400/400">
+								<!--<a class="btn-floating halfway-fab waves-effect waves-light cyan darken-2" onclick="incrementItem('{{_id}}', '{{storeId}}', '{{price}}', '{{name}}')"><i class="material-icons">add</i></a>-->
 							</div>
 							<div class="card-content row">
-								<span class="flow-text activator grey-text text-darken-4">{{name}}<!--<i class="material-icons right">more_vert</i>--></span>
+								<span class="activator grey-text text-darken-4">{{name}}<!--<i class="material-icons right">more_vert</i>--></span>
 								<p>{{price}} грн{{#if weight}}, {{weight}}гр{{/if}}</p>
 
 								<a class='activator btn btn-flat col xs6'>Детали</a>
+								<a class="btn-floating waves-effect waves-light cyan darken-2 right" onclick="incrementItem('{{_id}}', '{{storeId}}', '{{price}}', '{{name}}')"><i class="material-icons">add</i></a>
 								<!--<a class='btn btn-flat col xs6' onclick="incrementItem('{{_id}}', '{{storeId}}', '{{price}}', '{{name}}')"><i class="material-icons right">add_shopping_cart</i>В корзину</a>-->
 							</div>
 							<!--<div class='card-action row'>
@@ -306,7 +175,7 @@
 								<a class='btn btn-flat col xs6' onclick="incrementItem('{{_id}}', '{{storeId}}', '{{price}}', '{{name}}')">Заказать</a>
 							</div>-->
 							<div class="card-reveal">
-								<span class="card-title grey-text text-darken-4 flow-text">{{name}}<i class="material-icons right">close</i></span>
+								<span class="card-title grey-text text-darken-4">{{name}}<i class="material-icons right">close</i></span>
 								<p class="flow-text">Here is some more information about this product that is only revealed once clicked on.</p>
 							</div>
 						</div>
@@ -316,11 +185,6 @@
 			<script id ="storename-template" type="text/x-handlebars-template">
 				{{name}}
 			</script>
-			<!--dropdown-
-			<ul class="dropdown-content" id='city-dropdown-single-store'>
-				<li><a href="javascript:void(0)" onclick="currentCity = '588cf6e7d263bce41074cf0c'; orderItems = []; renderInitialPage()">Одесса</a></li>
-				<li><a href="javascript:void(0)" onclick="currentCity = '588cf6e7d263bce41074cf0d'; orderItems = []; renderInitialPage()">Львов</a></li>
-			</ul>-->
 		</div>
 
 		
@@ -342,10 +206,10 @@
 						<ul class="right">
 							<li>
 					
-								<a class="waves-effect waves-light   " href="#loginModal-shopping-cart"><i class="material-icons ">account_circle</i></a>
+								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdown-shopping-cart"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -367,7 +231,7 @@
 					{{#items}}
 					<li class="collection-item id{{id}} avatar dismissable">
 						
-						<img src="http://placehold.it/400x400" alt="" class="circle">
+						<img src="http://placehold.it/400/400" alt="" class="circle">
 						<div class="item title"><a class='btn-floating btn-flat waves-effect waves-light' onclick="removeFromCartButton('{{id}}', '{{../id}}', '{{price}}')"><i class="material-icons" style='color: darkcyan'>close</i></a>{{name}}<br></div>
 						<div class="input-field">
 							<a class="btn-floating waves-effect waves-light btn-flat" onclick="decrementItemButton('{{id}}', '{{../id}}', '{{price}}')"><i class="material-icons" style='color: darkcyan'>remove</i></a>
@@ -384,7 +248,7 @@
 					{{/items}}
 				</ul>
 				{{/each}}
-				<ul class = "collection with-header">
+				<ul class = "collection with-header bottom-title">
 					<li class="collection-header">Сумма: <span class='total-sum'>{{sum}}</span> грн</li>
 				</ul>
 			</script>
@@ -395,26 +259,26 @@
 				<div class="form-title top-title xs12">
 						Оформление заказа
 				</div>
-				<form class='col xs12'>
+				<form class='col xs12 order' action="javascript:void(0)" onsubmit="submitOrderForm();" id='orderForm'>
 					<div class='row'>
 						<div class="input-field col xs12">
-							<input type='text' class='' id='name'>
+							<input type='text' class='' name='name' id='name' required>
 							<label for="name">Имя</label>
 						</div>
 					</div>
 					<div class="row">
 						<div class="input-field col xs9">
-							<input type='text' class='' id = 'street'>
+							<input type='text' class='' name='street' id = 'street' required>
 							<label for='street'>Улица</label>
 						</div>
 						<div class='input-field col xs3'>
-							<input type='text' class=''id='house'>
+							<input type='text' class='' name='house' id='house' required>
 							<label for="house">Дом</label>
 						</div>
 					</div>
 					<div class="row">
 						<div class="input-field col xs12">
-							<input type="number" class='' id='phone_number'>
+							<input type="number" class='' name='phone_number' id='phone_number' required>
 							<label for="phone_number">Номер телефона</label>
 						</div>
 					</div>
@@ -423,12 +287,12 @@
 					</div>
 					<div class="row">
 						<div class="input-field col xs6">
-							<input type="radio" name = 'pay_method' class='with-gap' id='pay_card'>
-							<label for="pay_card">Картой</label>
+							<input type="radio" name = 'pay_method' class='with-gap' name='pay_cash' id='pay_cash' value='pay_cash' checked='checked'>
+							<label for="pay_cash">Наличными</label>
 						</div>
 						<div class="input-field col xs6">
-							<input type="radio" name = 'pay_method' class='with-gap' id='pay_cash'>
-							<label for="pay_cash">Наличными</label>
+							<input type="radio" name = 'pay_method' class='with-gap' name='pay_card' id='pay_card' value='pay_card'>
+							<label for="pay_card">Картой</label>
 						</div>
 					</div>
 					<br>
@@ -437,17 +301,17 @@
 					</div>
 					<div class="row">
 						<div class="input-field col xs12">
-							<input type="text" class='' id='time_notes'>
+							<input type="text" class='' name='time_notes' id='time_notes'>
 							<label for="time_notes">На время</label>
 						</div>
 					</div>
 					<div class="row">
 						<div class="input-field col xs12">
-							<textarea id='location_notes' class='materialize-textarea'></textarea>
+							<textarea id='location_notes' name='location_notes' class='materialize-textarea' data-length="300"></textarea>
 							<label for="location_notes">Как курьеру проще вас найти?</label>
 						</div>
 					</div>
-					<button class="btn waves-effect waves-light col xs12" type="submit" name="action">
+					<button class="btn waves-effect waves-light col xs12"  > 
 						Заказать
 					</button>
 				</form>
@@ -455,101 +319,7 @@
 						
 			</div>
 
-			<ul class="dropdown-content" id='dropdown-shopping-cart'>
-				<li><a href="#delivery">Условия доставки</a></li>
-				<li><a href="">Контакты</a></li>
-				<li><a href="#city-modal-shopping-cart">Выбор города</a></li>
-			</ul>
-			<div class="modal" id="city-modal-shopping-cart">
-				<div class="modal-content">
-					<h4 class='center'>Выбор города</h4>
-					<div class='center'>
-						<a class='btn modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; orderItems = []; renderInitialPage()">Одесса</a>
-						<a class="btn modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; orderItems = []; renderInitialPage()">Львов</a>
-					</div>
-				</div>
-			</div>
 			
-			<div class="modal modal-login" id="loginModal-shopping-cart" role="dialog">
-				<div class="modal-content">
-					<span class="row">
-						<h4 class='col xs10'>Авторизация</h4>
-						<a href='#' class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
-					</span>
-					<div class='row'>
-						<form class="col xs12">
-							<div class="row">
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="email" class='validate' id="email">
-									<label for="email">Email</label>
-								</div>
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="password" class="validate" id="password">
-									<label for="password">Password</label>
-								</div>
-							</div>
-							<div class="row">
-
-								<div class="col xs12 m5">
-									<input type="checkbox" id="rememberme">
-									<label for="rememberme">Remember Me</label>
-								</div>
-								<a href="#" class="btn waves-effect waves-green col xs12 m7">Войти</a>
-							</div>
-
-						</form>
-					</div>
-					<br>
-					<div class="modal-footer row">
-						<span class='col xs12 m5'>Нет аккаунта?</span>
-						<a href='#register' class='modal-action modal-close waves-effect waves-green btn col xs12 m7'>Создать</a>
-					</div>
-				</div>
-
-			</div>
-			<!--dropdown-->
-			<!--<ul class="dropdown-content" id='city-dropdown-shopping-cart'>
-				<li><a href="javascript:void(0)" onclick="currentCity = '588cf6e7d263bce41074cf0c'; orderItems = []; renderInitialPage()">Одесса</a></li>
-				<li><a href="javascript:void(0)" onclick="currentCity = '588cf6e7d263bce41074cf0d'; orderItems = []; renderInitialPage()">Львов</a></li>
-			</ul>
-
-			<!--TODO - FORM AND SETTINGS--
-			<div class="modal" id="loginModal-shopping-cart" role="dialog">
-				<div class="modal-content">
-					<h4>Account and Settings</h4>
-					<div class='row'>
-						<form class="col xs12">
-							<div class="row">
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="email" class='validate' id="email">
-									<label for="email">Email</label>
-								</div>
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="password" class="validate" id="password">
-									<label for="password">Password</label>
-								</div>
-							</div>
-							<div class="row">
-
-								<div class="col xs12 s3 m6">
-									<input type="checkbox" id="rememberme">
-									<label for="rememberme">Remember Me</label>
-								</div>
-								<div class="col xs12 s4 offset-s4 m6">
-									<a href="#!" class="btn btn-raised waves-effect waves-green yellow accent-4">Login</a>
-								</div>
-							</div>
-							<hr/>
-
-						</form>
-					</div>
-
-					<div class="modal-footer">
-						<a href='#' class='modal-action modal-close waves-effect waves-green btn-flat'>Agree</a>
-					</div>
-				</div>
-
-			</div>-->
 		</div>
 		
 		<div class="delivery page">
@@ -568,10 +338,10 @@
 
 						<ul class="right">
 							<li>
-								<a class="waves-effect waves-light   " href="#loginModal-delivery"><i class="material-icons ">account_circle</i></a>
+								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdown-delivery"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -606,102 +376,9 @@
 			</main>
 
 			
-			<ul class="dropdown-content" id='dropdown-delivery'>
-				<li><a href="#delivery">Условия доставки</a></li>
-				<li><a href="">Контакты</a></li>
-				<li><a href="#city-modal-delivery">Выбор города</a></li>
-			</ul>
-			<div class="modal" id="city-modal-delivery">
-				<div class="modal-content">
-					<h4 class='center'>Выбор города</h4>
-					<div class='center'>
-						<a class='btn modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; orderItems = []; renderInitialPage()">Одесса</a>
-						<a class="btn modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; orderItems = []; renderInitialPage()">Львов</a>
-					</div>
-				</div>
-			</div>
 			
-			<div class="modal modal-login" id="loginModal-delivery" role="dialog">
-				<div class="modal-content">
-					<span class="row">
-						<h4 class='col xs10'>Авторизация</h4>
-						<a href='#' class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
-					</span>
-					<div class='row'>
-						<form class="col xs12">
-							<div class="row">
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="email" class='validate' id="email">
-									<label for="email">Email</label>
-								</div>
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="password" class="validate" id="password">
-									<label for="password">Password</label>
-								</div>
-							</div>
-							<div class="row">
 
-								<div class="col xs12 m5">
-									<input type="checkbox" id="rememberme">
-									<label for="rememberme">Remember Me</label>
-								</div>
-								<a href="#" class="btn waves-effect waves-green col xs12 m7">Войти</a>
-							</div>
-
-						</form>
-					</div>
-					<br>
-					<div class="modal-footer row">
-						<span class='col xs12 m5'>Нет аккаунта?</span>
-						<a href='#register' class='modal-action modal-close waves-effect waves-green btn col xs12 m7'>Создать</a>
-					</div>
-				</div>
-
-			</div>
-
-			<!--dropdown-->
-			<!--<ul class="dropdown-content" id='city-dropdown-delivery'>
-				<li><a href="javascript:void(0)" onclick="currentCity = '588cf6e7d263bce41074cf0c'; orderItems = []; renderInitialPage()">Одесса</a></li>
-				<li><a href="javascript:void(0)" onclick="currentCity = '588cf6e7d263bce41074cf0d'; orderItems = []; renderInitialPage()">Львов</a></li>
-			</ul>
-
-			<!--TODO - FORM AND SETTINGS--
-			<div class="modal" id="loginModal-delivery" role="dialog">
-				<div class="modal-content">
-					<h4>Account and Settings</h4>
-					<div class='row'>
-						<form class="col xs12">
-							<div class="row">
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="email" class='validate' id="email">
-									<label for="email">Email</label>
-								</div>
-								<div class="input-field col xs12 s12 m6 l6">
-									<input type="password" class="validate" id="password">
-									<label for="password">Password</label>
-								</div>
-							</div>
-							<div class="row">
-
-								<div class="col xs12 s3 m6">
-									<input type="checkbox" id="rememberme">
-									<label for="rememberme">Remember Me</label>
-								</div>
-								<div class="col xs12 s4 offset-s4 m6">
-									<a href="#!" class="btn btn-raised waves-effect waves-green yellow accent-4">Login</a>
-								</div>
-							</div>
-							<hr/>
-
-						</form>
-					</div>
-
-					<div class="modal-footer">
-						<a href='#' class='modal-action modal-close waves-effect waves-green btn-flat'>Agree</a>
-					</div>
-				</div>
-
-			</div>-->
+			
 
 		</div>
 
@@ -716,17 +393,11 @@
 							<i class="material-icons " style='color:white;'>keyboard_backspace</i>
 						</a>
 
-						<!--<a class="brand-logo center">
-							Регистрация
-						</a>-->
 
 						<ul class="right">
-							<!--<li>
-					
-								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
-							</li>-->
+							
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdown-register"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -739,36 +410,44 @@
 				<div class="form-title top-title xs12">
 						Регистрация
 				</div>
-				<form class='col xs12'>
+				<form class='col xs12 registration' action="javascript:void(0)" onsubmit="submitRegistrationForm();" id='registrationForm'>
+					<div class="row">
+						<div class="input-field col xs12">
+							<input type="email" id='regEmail' name = 'regEmail' required>
+							<label for="regEmail">Email</label>
+						</div>
+					</div>
+					<div class="row">
+						<div class="input-field col xs12">
+							<input type="password" pattern=".{5,}"  class='' id='regPassword' name='regPassword' required>
+							<label for="regPassword">Пароль (минимум 5 символов)</label>
+						</div>
+					</div>
 					<div class='row'>
 						<div class="input-field col xs12">
-							<input type='text' class='' id='reg-name'>
-							<label for="reg-name">Имя</label>
+							<input type='text' class='' id='regName' name='regName' required>
+							<label for="regName">Имя</label>
 						</div>
 					</div>
 					<div class="row">
 						<div class="input-field col xs9">
-							<input type='text' class='' id = 'reg-street'>
-							<label for='reg-street'>Улица</label>
+							<input type='text' class='' id = 'regStreet' name='regStreet' required>
+							<label for='regStreet'>Улица</label>
 						</div>
 						<div class='input-field col xs3'>
-							<input type='text' class=''id='reg-house'>
-							<label for="reg-house">Дом</label>
+							<input type='text' class=''id='regHouse' name='regHouse' required>
+							<label for="regHouse">Дом</label>
 						</div>
 					</div>
 					<div class="row">
 						<div class="input-field col xs12">
-							<input type="number" class='' id='reg-phone_number'>
-							<label for="reg-phone_number">Номер телефона</label>
+							<input type="number" class='' id='regPhoneNumber' name='regPhoneNumber' required>
+							<label for="regPhoneNumber">Номер телефона</label>
 						</div>
 					</div>
-					<div class="row">
-						<div class="input-field col xs12">
-							<input type="email" id='reg-email'>
-							<label for="reg-email">Email</label>
-						</div>
-					</div>
-					<button class="btn waves-effect waves-light col xs12" type="submit" name="action">
+					
+
+					<button class="btn waves-effect waves-light col xs12">
 						Регистрация
 					</button>
 				</form>
@@ -776,26 +455,64 @@
 						
 			</div>
 
-			<ul class="dropdown-content" id='dropdown-register'>
-				<li><a href="#delivery">Условия доставки</a></li>
-				<li><a href="">Контакты</a></li>
-				<li><a href="#city-modal-register">Выбор города</a></li>
-			</ul>
-			<div class="modal" id="city-modal-register">
-				<div class="modal-content">
-					<h4 class='center'>Выбор города</h4>
-					<div class='center'>
-						<a class='btn modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; orderItems = []; renderInitialPage()">Одесса</a>
-						<a class="btn modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; orderItems = []; renderInitialPage()">Львов</a>
-					</div>
-				</div>
-			</div>
+			
 			
 			
 
 		</div>
 		
 		
+		<ul class="dropdown-content" id='dropdownMenu'>
+			<li><a href="#delivery">Условия доставки</a></li>
+			<li><a href="">Контакты</a></li>
+			<li><a href="#city-modal">Выбор города</a></li>
+		</ul>
+		<div class="modal" id="city-modal">
+			<div class="modal-content">
+				<h4 class='center'>Выбор города</h4>
+				<div class='center'>
+					<a class='btn-flat modal-action modal-close' onclick="currentCity = '588cf6e7d263bce41074cf0c'; storesItems ={}; setCookie('cityId', '588cf6e7d263bce41074cf0c', 1); order = {orderItems: [],sum: 0}; renderInitialPage()">Одесса</a>
+					<a class="btn-flat modal-action modal-close" onclick="currentCity = '588cf6e7d263bce41074cf0d'; storesItems ={}; setCookie('cityId', '588cf6e7d263bce41074cf0d', 1);  order = {orderItems: [],sum: 0}; renderInitialPage()">Львов</a>
+				</div>
+			</div>
+		</div>
+		<div class="modal modal-login" id="loginModal" role="dialog">
+			<div class="modal-content">
+				<span class="row">
+					<h5 class='col xs10'>Авторизация</h5>
+					<a href='#' class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
+				</span>
+				<div class='row'>
+					<form class="col xs12 ">
+						<div class="row">
+							<div class="input-field col xs12 s12 m6 l6">
+								<input type="email" class='validate' id="email">
+								<label for="email">Email</label>
+							</div>
+							<div class="input-field col xs12 s12 m6 l6">
+								<input type="password" class="validate" id="password">
+								<label for="password">Password</label>
+							</div>
+						</div>
+						<div class="row">
+
+							<div class="col xs12 m5">
+								<input type="checkbox" id="rememberme">
+								<label for="rememberme">Remember Me</label>
+							</div>
+							<a href="#" class="btn waves-effect waves-green col xs12 m7">Войти</a>
+						</div>
+
+					</form>
+				</div>
+				<br>
+				<div class="modal-footer row">
+					<span class='col xs12 m5'>Нет аккаунта?</span>
+					<a href='#register' class='modal-action modal-close waves-effect waves-green btn col xs12 m7'>Создать</a>
+				</div>
+			</div>
+
+		</div>
 		
 		
 		<div class="fixed-action-btn scale-transition">
