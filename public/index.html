@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" user-scalable='no'>
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<title>Доставка Gorilla</title>
 	
@@ -37,7 +37,7 @@
 					<div class="nav-wrapper">
 
 						<a class="brand-logo left" href="#">
-							<img src="static/img/logo.svg" alt="gorilla_logo" width="45px" height="45px">
+							<img src="static/img/logo.svg" alt="gorilla_logo" style="width: 45px; height:45px">
 						</a>
 
 						<ul class="right">
@@ -46,7 +46,7 @@
 								<a class="waves-effect waves-light" href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button" data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button" data-activates="dropdownMenu1"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -139,7 +139,7 @@
 								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu2"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -209,7 +209,7 @@
 								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu3"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -341,7 +341,7 @@
 								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu4"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -397,7 +397,7 @@
 						<ul class="right">
 							
 							<li>
-								<a href="#" class="dropdown-button"  data-activates="dropdownMenu"> <i class="material-icons ">more_vert</i></a>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu5"> <i class="material-icons ">more_vert</i></a>
 							</li>
 						</ul>
 
@@ -435,7 +435,7 @@
 							<label for='regStreet'>Улица</label>
 						</div>
 						<div class='input-field col xs3'>
-							<input type='text' class=''id='regHouse' name='regHouse' required>
+							<input type='text' class='' id='regHouse' name='regHouse' required>
 							<label for="regHouse">Дом</label>
 						</div>
 					</div>
@@ -462,11 +462,33 @@
 		</div>
 		
 		
-		<ul class="dropdown-content" id='dropdownMenu'>
+		<ul class="dropdown-content" id="dropdownMenu1">
 			<li><a href="#delivery">Условия доставки</a></li>
 			<li><a href="">Контакты</a></li>
 			<li><a href="#city-modal">Выбор города</a></li>
 		</ul>
+		<ul class="dropdown-content" id="dropdownMenu2">
+			<li><a href="#delivery">Условия доставки</a></li>
+			<li><a href="">Контакты</a></li>
+			<li><a href="#city-modal">Выбор города</a></li>
+		</ul>
+		<ul class="dropdown-content" id="dropdownMenu3">
+			<li><a href="#delivery">Условия доставки</a></li>
+			<li><a href="">Контакты</a></li>
+			<li><a href="#city-modal">Выбор города</a></li>
+		</ul>
+		<ul class="dropdown-content" id="dropdownMenu4">
+			<li><a href="#delivery">Условия доставки</a></li>
+			<li><a href="">Контакты</a></li>
+			<li><a href="#city-modal">Выбор города</a></li>
+		</ul>
+		<ul class="dropdown-content" id="dropdownMenu5">
+			<li><a href="#delivery">Условия доставки</a></li>
+			<li><a href="">Контакты</a></li>
+			<li><a href="#city-modal">Выбор города</a></li>
+		</ul>
+
+
 		<div class="modal" id="city-modal">
 			<div class="modal-content">
 				<h4 class='center'>Выбор города</h4>
@@ -480,7 +502,7 @@
 			<div class="modal-content">
 				<span class="row">
 					<h5 class='col xs10'>Авторизация</h5>
-					<a href='#' class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
+					<a  class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
 				</span>
 				<div class='row'>
 					<form class="col xs12 ">

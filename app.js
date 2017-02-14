@@ -2,7 +2,10 @@ var express = require('express');
 var assert = require('assert');
 var bodyParser = require('body-parser');
 var async = require('async')
+const crypto = require('crypto')
+const hash = crypto.createHash('sha256');
 var monk = require('monk')
+//var favicon = require('serve-favicon')
 
 var port = 3000;
 var app = express()
@@ -13,6 +16,8 @@ const db = monk('localhost:27017/gorilladb')
 // Connection URL
 var url = 'mongodb://localhost:27017/gorilladb';
 app.use(express.static('public'))
+app.use(bodyParser.json())
+//app.use(favicon(__dirname + '/favicon.ico'))
 app.get('/', function (req, res) {
     res.sendFile('index.html')
 })
@@ -81,7 +86,6 @@ app.get('/api/:version/storetypes', (req, res) => {
                 function(callback) {
                     async.eachOfSeries(storetypesArray, function(item, index, innercallback) {
                         stores.find({ "cityId": monk.id(req.query.city.toString()), "typeId": item._id }).then((storesArray) => {
-                            console.log(item);
                             if (storesArray.length !== 0) {
                                 result.push(item);
 
@@ -211,6 +215,54 @@ app.get('/api/:version/cities', (req, res) => {
     }
 })
 
-app.listen(port, '0.0.0.0', function () {
+/*add new order*/
+app.post('/api/:version/orders', (req, res) => {
+    if (!req.body) return res.sendStatus(400)
+    const orders = db.get('orders');
+    let order = req.body;
+    var phoneRegExp = /^(?:\+?38)?0\d{9}$/;
+    
+    if (order.sum <= 0 || order.customerInfo.name === '' || order.customerInfo.street === '' || order.customerInfo.house === '' || !phoneRegExp.test(order.customerInfo.phone_number)) {
+        return res.sendStatus(400);
+    }
+    orders.insert(order)
+    console.log(order.customerInfo);
+    res.end();
+})
+
+
+/*register new user*/
+app.post('/api/:version/users', (req, res) => {
+    function getGeneratedSalt (length) {
+        return Math.random().toString(36).substr(2, length);
+    }
+    if (!req.body) return res.sendStatus(400);
+    const users = db.get('users');
+    const roles = db.get('roles');
+    let user = req.body;
+    var phoneRegExp = /^(?:\+?38)?0\d{9}$/;
+    if (user.regEmail === '' || user.regHouse === '' || user.RegName === '' || user.regPassword === '' || !phoneRegExp.test(user.regPhoneNumber) || user.regStreet === '') {
+        return res.sendStatus(400);
+    }
+    var userSalt = getGeneratedSalt(6);
+    hash.update(user.regPassword)
+        .update(userSalt);
+    roles.findOne({name: 'User'}).then(function (role) {
+        var registeredUser = {
+            name: user.regName,
+            password: hash.digest('hex'),
+            salt: userSalt,
+            email: user.regEmail,
+            phone: user.regPhoneNumber,
+            roleId: role._id,
+            cityId: monk.id(user.city)
+        }
+        users.insert(registeredUser);
+        res.end();
+    })
+    
+})
+
+app.listen(port, function () {
     console.log('app listening on port ' + port)
 })

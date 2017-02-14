@@ -3522,7 +3522,7 @@ small {
   z-index: 10000; }
   @media only screen and (max-width: 600px) {
     #toast-container {
-      min-width: 100%;
+      min-width: auto;
       bottom: 0%; } }
   @media only screen and (min-width: 601px) and (max-width: 992px) {
     #toast-container {

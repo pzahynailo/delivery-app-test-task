@@ -1,23 +1,20 @@
-var host = 'http://188.115.141.92';
+var host = 'http://188.115.154.213';
 var port = 3000;
 var root = host + ':' + port;
 var ODESSA = "588cf6e7d263bce41074cf0c";
 var LVIV = "588cf6e7d263bce41074cf0d";
 var defaultCity = ODESSA;
 var currentCity = defaultCity;
-
-window.addEventListener('hashchange', function () {
-  render(decodeURI(window.location.hash));
- 
-});
-
+var phoneRegExp = /^(?:\+?38)?0\d{9}$/;
 
 var order = {
   orderItems: [],
-  sum: 0
+  sum: 0,
+  customerInfo: {}
 }
 
 var storesItems = {};
+
 
 
 $(document).ready(function () {
@@ -31,13 +28,16 @@ $(document).ready(function () {
     startingTop: '4%', // Starting top style attribute
     endingTop: '30%', // Ending top style attribute
   });
-  /*$('.dropdown-button').dropdown({
-      alignment: 'left', // Displays dropdown with edge aligned to the left of button
-      constrainWidth: true
-    }
+ /* $('.dropdown-button').dropdown({
+    stopPropagation: true
+  }
   );*/
   // $('.parallax').parallax();
 
+  window.addEventListener('hashchange', function () {
+    render(decodeURI(window.location.hash));
+
+  });
 
   //renderInitialPage();
   currentCity = getCookie('cityId');
@@ -52,10 +52,10 @@ $(document).ready(function () {
     $('#city-modal').modal('open');
 
   }
- // $('#city-modal').modal('open');
+  // $('#city-modal').modal('open');
   //
-  
-  
+
+
   //
 
 });
@@ -65,6 +65,7 @@ $(document).ready(function () {
 function render(url) {
   //get the keyword
   var temp = url.split('/')[0];
+
   if (document.querySelector('.fixed-action-btn').classList.contains('scale-out')) {
     document.querySelector('.fixed-action-btn').classList.remove('scale-out');
     document.querySelector('.fixed-action-btn').classList.add('scale-in');
@@ -132,12 +133,12 @@ function renderInitialPage() {
 
     var lis = document.querySelectorAll('#navHorizontal-allstores li');
     for (var i = 0; i < lis.length; i++) {
-      lis[i].addEventListener('click', function(foo,bar) {
-        return function() {
-          renderStoresOfType(foo,bar)
+      lis[i].addEventListener('click', function (foo, bar) {
+        return function () {
+          renderStoresOfType(foo, bar)
         }
-        
-      }(currentCity, storetypes.storetypes[i]._id) , false)
+
+      } (currentCity, storetypes.storetypes[i]._id), false)
     }
 
     template = document.querySelector("#storelistUL-template").innerHTML;
@@ -150,15 +151,98 @@ function renderInitialPage() {
 
 
     $('ul.tabs').tabs('select_tab', storetypes.storetypes[0]._id);
-    
+
 
     $('ul.tabs').tabs();
-
+    /*$('ul.tabs').tabs({
+    swipeable: true
+  })*/
     document.getElementById('tab' + storetypes.storetypes[0]._id).dispatchEvent(new Event('click'));
   })
-  //
   window.location.hash = '#'
   page.classList.add('visible');
+
+}
+
+function renderTemplate(_pageselector, _template, _context, _target) {
+  var template = document.querySelector(_template).innerHTML;
+  var compiledTemplate = Handlebars.compile(template);
+  var rendered = compiledTemplate(_context);
+  document.querySelector(_target).innerHTML = rendered;
+  if (_pageselector !== null) {
+    var page = document.querySelector(_pageselector);
+    page.classList.add('visible');
+  }
+}
+
+function renderCartPage() {
+  /*if (order.sum !== 0)*/
+
+  /*document.querySelector('.fixed-action-btn').classList.add('scale-out');*/
+  renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
+  /*else {
+    document.querySelector('.shopping-cart.page').style.display = 'block';
+    document.querySelector('.shopping-cart-empty').style.display = 'block';
+  }*/
+}
+
+function renderStorePage(storeId) {
+  var page = document.querySelector('.single-store.page');
+  getItems(storeId, function (items) {
+    items = JSON.parse(items);
+    renderTemplate('.single-store.page', '#single-store-template', items, '#single-store-row');
+
+  })
+  getStore(storeId, function (store) {
+    store = JSON.parse(store);
+    renderTemplate(null, '#storename-template', store.stores[0], '.brand-logo.center.storename');
+
+  })
+  var htmlEl = document.getElementsByTagName('html')[0];
+
+  page.style.height = parseInt(page.style.height) + 60 + 'px';
+
+  page.classList.add('visible');
+}
+
+
+function renderStoresOfType(currentCity, type) {
+  if (storesItems !== undefined && storesItems[type] !== undefined) {
+    var template = document.getElementById("storelist-template").innerHTML;
+    var compiledTemplate = Handlebars.compile(template);
+    var rendered = compiledTemplate(storesItems[type]);
+    document.getElementById(type).innerHTML = rendered;
+
+    var storesDOM = document.getElementById(type).children;
+    for (var i = 0; i < storesDOM.length; i++) {
+      let id = storesDOM[i].id;
+      storesDOM[i].addEventListener('click', function () {
+        window.location.hash = "store/" + id;
+      }, false)
+    }
+  }
+  else {
+    getStores(currentCity, type, function (stores) {
+      stores = JSON.parse(stores);
+      storesItems[type] = stores;
+      var template = document.getElementById("storelist-template").innerHTML;
+      var compiledTemplate = Handlebars.compile(template);
+      var rendered = compiledTemplate(stores);
+      document.getElementById(type).innerHTML = rendered;
+
+      var storesDOM = document.getElementById(type).children;
+      for (var i = 0; i < storesDOM.length; i++) {
+        let id = storesDOM[i].id;
+        storesDOM[i].addEventListener('click', function () {
+          window.location.hash = "store/" + id;
+        }, false)
+      }
+
+    })
+  }
+}
+
+function renderErrorPage() {
 
 }
 
@@ -236,7 +320,7 @@ function incrementItem(itemId, storeId, price, name, noToast) {
     itemObject.quantity = 1;
     itemObject.price = price;
     itemObject.sum = price;
-    
+
     var storeObject = {};
     getStore(storeId, function (store) {
       store = JSON.parse(store);
@@ -261,7 +345,7 @@ function incrementItem(itemId, storeId, price, name, noToast) {
   badge.innerHTML = '₴' + order.sum;
   if (!noToast)
     /*Materialize.toast(name + ' +', 1000)*/
-    Materialize.toast('Товар добавлен :)', 1000)
+    Materialize.toast('Товар добавлен :)', 2000)
 }
 
 function removeFromCartButton(itemId, storeId, price) {
@@ -373,85 +457,7 @@ function getItemAndStoreFromCart(itemId, storeId) {
 
 }
 
-function renderTemplate(_pageselector, _template, _context, _target) {
-  var template = document.querySelector(_template).innerHTML;
-  var compiledTemplate = Handlebars.compile(template);
-  var rendered = compiledTemplate(_context);
-  document.querySelector(_target).innerHTML = rendered;
-  if (_pageselector !== null) {
-    var page = document.querySelector(_pageselector);
-    page.classList.add('visible');
-  }
-}
 
-
-
-function renderCartPage() {
-  /*if (order.sum !== 0)*/
-
-  /*document.querySelector('.fixed-action-btn').classList.add('scale-out');*/
-  renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
-  /*else {
-    document.querySelector('.shopping-cart.page').style.display = 'block';
-    document.querySelector('.shopping-cart-empty').style.display = 'block';
-  }*/
-}
-
-function renderStorePage(storeId) {
-  var page = document.querySelector('.single-store.page');
-  getItems(storeId, function (items)  {
-    items = JSON.parse(items);
-    renderTemplate('.single-store.page', '#single-store-template', items, '#single-store-row');
-
-  })
-  getStore(storeId, function (store) {
-    store = JSON.parse(store);
-    renderTemplate(null, '#storename-template', store.stores[0], '.brand-logo.center.storename');
-
-  })
-  page.classList.add('visible');
-}
-
-
-function renderStoresOfType(currentCity, type) {
-  if (storesItems !== undefined && storesItems[type] !== undefined) {
-    var template = document.getElementById("storelist-template").innerHTML;
-    var compiledTemplate = Handlebars.compile(template);
-    var rendered = compiledTemplate(storesItems[type]);
-    document.getElementById(type).innerHTML = rendered;
-
-    var storesDOM = document.getElementById(type).children;
-    for (var i = 0; i < storesDOM.length; i++) {
-      let id = storesDOM[i].id;
-      storesDOM[i].addEventListener('click', function () {
-        window.location.hash = "store/" + id;
-      }, false)
-    }
-  }
-  else {
-    getStores(currentCity, type, function (stores) {
-      stores = JSON.parse(stores);
-      storesItems[type] = stores;
-      var template = document.getElementById("storelist-template").innerHTML;
-      var compiledTemplate = Handlebars.compile(template);
-      var rendered = compiledTemplate(stores);
-      document.getElementById(type).innerHTML = rendered;
-
-      var storesDOM = document.getElementById(type).children;
-      for (var i = 0; i < storesDOM.length; i++) {
-        let id = storesDOM[i].id;
-        storesDOM[i].addEventListener('click', function () {
-          window.location.hash = "store/" + id;
-        }, false)
-      }
-
-    })
-  }
-}
-
-function renderErrorPage() {
-
-}
 
 
 /*get items by store*/
@@ -520,6 +526,75 @@ function getStoretypes(city, callback) {
   xhr.send()
 }
 
+function formToObject(form) {
+  var object = {};
+  var formData = new FormData(document.querySelector(form));
+  formData = Array.from(formData.entries());
+  var formDataLength = formData.length;
+  for (var i = 0; i < formDataLength; i++) {
+    object[formData[i][0]] = formData[i][1];
+  }
+  return object;
+}
+
+function submitRegistrationForm() {
+  var customerInfo = formToObject('form.registration');
+  if (validateRegistrationForm(customerInfo)) {
+    customerInfo.city = currentCity;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', root + '/api/v1/users', true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.send(JSON.stringify(customerInfo));
+    xhr.onloadend = function () {
+      window.location.hash = '#';
+      $('#registeredModal').modal('open');
+    }
+  }
+}
+
+function validateRegistrationForm(customerInfo) {
+  var valid = true;
+  if (!phoneRegExp.test(customerInfo.regPhoneNumber)) {
+    valid = false;
+  }
+  return valid;
+}
+
+function validateOrderForm(customerInfo) {
+  var valid = true;
+  if (order.sum <= 0 || !phoneRegExp.test(customerInfo.phone_number)) {
+    valid = false;
+  }
+  return valid;
+}
+
+function submitOrderForm() {
+  var customerInfo = formToObject('form.order');
+  if (validateOrderForm(customerInfo)) {
+    order.customerInfo = customerInfo;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', root + '/api/v1/orders', true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.send(JSON.stringify(order));
+    xhr.onloadend = function () {
+      order = {
+        orderItems: [],
+        sum: 0,
+        customerInfo: {}
+      }
+      var badge = document.querySelector('.badge');
+      badge.innerHTML = '₴' + order.sum;
+      badge.style.display = 'none';
+      window.location.hash = '#';
+      $('#orderedModal').modal('open');
+
+
+    }
+  }
+
+}
+
+
 
 function goBack() {
   window.history.back();
@@ -530,23 +605,23 @@ function trigger() {
 
 };
 function getCookie(cname) {
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
     }
-    return "";
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
 }
 function setCookie(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = "expires="+ d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  var expires = "expires=" + d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
