@@ -7,7 +7,7 @@ const hash = crypto.createHash('sha256');
 var monk = require('monk')
 //var favicon = require('serve-favicon')
 
-var port = 3000;
+var port = 3001;
 var app = express()
 var mongo = require('mongodb')
 const db = monk('localhost:27017/gorilladb')

@@ -1,5 +1,5 @@
-var host = 'http://188.115.154.213';
-var port = 3000;
+var host = 'http://37.203.9.7';
+var port = 3001;
 var root = host + ':' + port;
 var ODESSA = "588cf6e7d263bce41074cf0c";
 var LVIV = "588cf6e7d263bce41074cf0d";
