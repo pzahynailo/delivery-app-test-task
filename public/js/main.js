@@ -164,7 +164,7 @@ function renderRegisterPage() {
 }
 function renderInitialPage() {
   var page = document.querySelector('.all-stores.page')
-  if (Object.keys(storesItems).length === 0 && storesItems.constructor === Object) {
+  if (true) {
     getStoretypes(currentCity, function (storetypes) {
       storetypes = JSON.parse(storetypes);
 
@@ -191,7 +191,7 @@ function renderInitialPage() {
       document.querySelector('#store-list').innerHTML = rendered;
 
 
-      $('.navbar-fixed.all-stores ul.tabs').tabs();
+      $('ul.tabs').tabs();
       $('ul.tabs').tabs('select_tab', storetypes.storetypes[0]._id);
 
 
@@ -202,7 +202,7 @@ function renderInitialPage() {
       document.getElementById('tab' + storetypes.storetypes[0]._id).dispatchEvent(new Event('click'));
     })
   }
-  $('.navbar-fixed.all-stores ul.tabs').tabs();
+  
   window.location.hash = '#'
   page.classList.add('visible');
 
@@ -223,28 +223,28 @@ function renderTemplate(_pageselector, _template, _context, _target) {
 }
 
 function renderCartPage() {
-  renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
-  if (authorized) {
-    var name = document.querySelector('#name');
-    var phone = document.querySelector('#phone_number');
-    
-    if ((name.value == '' && phone.value == '')|| settingsChanged){
-      getUser(function(user) {
-        var street = document.querySelector('#street');
-        var house = document.querySelector('#house');
-        user = JSON.parse(user);
-        name.value = user.name;
-        phone.value = user.phone;
-        if (user.street)
-          street.value = user.street;
-        if (user.house)
-          house.value = user.house;
-        Materialize.updateTextFields();
-        settingsChanged = false;
-      })
+    renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
+    if (authorized) {
+      var name = document.querySelector('#name');
+      var phone = document.querySelector('#phone_number');
+      
+      if ((name.value == '' && phone.value == '')|| settingsChanged){
+        getUser(function(user) {
+          var street = document.querySelector('#street');
+          var house = document.querySelector('#house');
+          user = JSON.parse(user);
+          name.value = user.name;
+          phone.value = user.phone;
+          if (user.street)
+            street.value = user.street;
+          if (user.house)
+            house.value = user.house;
+          Materialize.updateTextFields();
+          settingsChanged = false;
+        })
+      }
+      
     }
-    
-  }
 }
 
 function renderStorePage(storeId) {
@@ -776,7 +776,6 @@ function accountButton() {
     window.location.hash = 'account';
   }
 }
-
 function logOutButton() {
   var xhr = new XMLHttpRequest();
   xhr.open('DELETE', root + '/api/v1/session');
@@ -788,6 +787,13 @@ function logOutButton() {
     }
   }
   xhr.send();
+}
+
+function shoppingCartButton() {
+  if (order.sum > 0) {
+    window.location.hash = '#cart';
+  }
+  else Materialize.toast('Корзина пуста', 2000);
 }
 
 function goBack() {
