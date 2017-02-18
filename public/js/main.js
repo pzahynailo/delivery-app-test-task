@@ -5,8 +5,10 @@ var ODESSA = "588cf6e7d263bce41074cf0c";
 var LVIV = "588cf6e7d263bce41074cf0d";
 var defaultCity = ODESSA;
 var currentCity = defaultCity;
+var authorized;
 var phoneRegExp = /^(?:\+?38)?0\d{9}$/;
-
+var emailRegExp = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+var settingsChanged = false;
 var order = {
   orderItems: [],
   sum: 0,
@@ -28,19 +30,22 @@ $(document).ready(function () {
     startingTop: '4%', // Starting top style attribute
     endingTop: '30%', // Ending top style attribute
   });
- /* $('.dropdown-button').dropdown({
-    stopPropagation: true
-  }
-  );*/
+  /* $('.dropdown-button').dropdown({
+     stopPropagation: true
+   }
+   );*/
   // $('.parallax').parallax();
 
   window.addEventListener('hashchange', function () {
     render(decodeURI(window.location.hash));
 
   });
+  isAuthorized();
+  console.log(isAuthorized());
 
   //renderInitialPage();
   currentCity = getCookie('cityId');
+
   console.log(currentCity);
   if (currentCity !== '') {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
@@ -65,13 +70,13 @@ $(document).ready(function () {
 function render(url) {
   //get the keyword
   var temp = url.split('/')[0];
-
-  if (document.querySelector('.fixed-action-btn').classList.contains('scale-out')) {
-    document.querySelector('.fixed-action-btn').classList.remove('scale-out');
-    document.querySelector('.fixed-action-btn').classList.add('scale-in');
+  var fab = document.querySelector('.fixed-action-btn');
+  if (fab.classList.contains('scale-out')) {
+    fab.classList.remove('scale-out');
+    fab.classList.add('scale-in');
   }
   var page = document.querySelectorAll('.main-content .page');
-  for (var i = 0; i < page.length; i++) {
+  for (var i = 0, pl = page.length; i < pl; i++) {
 
     page[i].classList.remove('visible');
   }
@@ -89,10 +94,10 @@ function render(url) {
     },
     //Shopping Cart Page
     '#cart': function () {
-      if (document.querySelector('.fixed-action-btn').classList.contains('scale-in')) {
-        document.querySelector('.fixed-action-btn').classList.remove('scale-in');
+      if (fab.classList.contains('scale-in')) {
+        fab.classList.remove('scale-in');
       }
-      document.querySelector('.fixed-action-btn').classList.add('scale-out');
+      fab.classList.add('scale-out');
       renderCartPage();
     },
     //Delivery Info
@@ -102,6 +107,10 @@ function render(url) {
     //Register Page
     '#register': function () {
       renderRegisterPage();
+    },
+    //Account Page
+    '#account': function () {
+      renderAccountPage();
     }
   };
   if (map[temp]) {
@@ -113,6 +122,38 @@ function render(url) {
 
 }
 
+function renderAccountPage() {
+  if(authorized){
+    getOrders(function(orders) {
+      console.log(orders);
+      renderTemplate('.account.page', '#userOrdersTemplate', JSON.parse(orders), '#userOrdersTarget');
+      var name = document.querySelector('#changedName');
+      var phone = document.querySelector('#changedPhoneNumber');
+      
+      if ((name.value == '' && phone.value == '') || settingsChanged){
+        getUser(function(user) {
+          var street = document.querySelector('#changedStreet');
+          var house = document.querySelector('#changedHouse');
+          user = JSON.parse(user);
+          name.value = user.name;
+          phone.value = user.phone;
+          if (user.street)
+            street.value = user.street;
+          if (user.house)
+            house.value = user.house;
+          Materialize.updateTextFields();
+          settingsChanged = false;
+        })
+      }
+      $('ul.tabs').tabs();
+    })
+  }
+  else {
+    window.location.hash = '#';
+    $('#loginModal').modal('open');
+  }
+  
+}
 function renderDeliveryPage() {
   var page = document.querySelector('.delivery.page');
   page.classList.add('visible');
@@ -123,42 +164,45 @@ function renderRegisterPage() {
 }
 function renderInitialPage() {
   var page = document.querySelector('.all-stores.page')
-  getStoretypes(currentCity, function (storetypes) {
-    storetypes = JSON.parse(storetypes);
+  if (Object.keys(storesItems).length === 0 && storesItems.constructor === Object) {
+    getStoretypes(currentCity, function (storetypes) {
+      storetypes = JSON.parse(storetypes);
 
-    var template = document.querySelector("#storetypelist-template").innerHTML;
-    var compiledTemplate = Handlebars.compile(template);
-    var rendered = compiledTemplate((storetypes));
-    document.querySelector('#navHorizontal-allstores').innerHTML = rendered;
+      var template = document.querySelector("#storetypelist-template").innerHTML;
+      var compiledTemplate = Handlebars.compile(template);
+      var rendered = compiledTemplate((storetypes));
+      document.querySelector('#navHorizontal-allstores').innerHTML = rendered;
 
-    var lis = document.querySelectorAll('#navHorizontal-allstores li');
-    for (var i = 0; i < lis.length; i++) {
-      lis[i].addEventListener('click', function (foo, bar) {
-        return function () {
-          renderStoresOfType(foo, bar)
-        }
+      var lis = document.querySelectorAll('#navHorizontal-allstores li');
+      for (var i = 0, ll = lis.length; i < ll; i++) {
+        lis[i].addEventListener('click', function (foo, bar) {
+          return function () {
+            renderStoresOfType(foo, bar)
+          }
 
-      } (currentCity, storetypes.storetypes[i]._id), false)
-    }
+        } (currentCity, storetypes.storetypes[i]._id), false)
+      }
 
-    template = document.querySelector("#storelistUL-template").innerHTML;
+      template = document.querySelector("#storelistUL-template").innerHTML;
 
-    var compiledTemplate = Handlebars.compile(template);
-    var rendered = compiledTemplate((storetypes));
+      var compiledTemplate = Handlebars.compile(template);
+      var rendered = compiledTemplate((storetypes));
 
-    document.querySelector('#store-list').innerHTML = rendered;
-
-
-
-    $('ul.tabs').tabs('select_tab', storetypes.storetypes[0]._id);
+      document.querySelector('#store-list').innerHTML = rendered;
 
 
-    $('ul.tabs').tabs();
-    /*$('ul.tabs').tabs({
-    swipeable: true
-  })*/
-    document.getElementById('tab' + storetypes.storetypes[0]._id).dispatchEvent(new Event('click'));
-  })
+      $('.navbar-fixed.all-stores ul.tabs').tabs();
+      $('ul.tabs').tabs('select_tab', storetypes.storetypes[0]._id);
+
+
+      
+      /*$('ul.tabs').tabs({
+      swipeable: true
+    })*/
+      document.getElementById('tab' + storetypes.storetypes[0]._id).dispatchEvent(new Event('click'));
+    })
+  }
+  $('.navbar-fixed.all-stores ul.tabs').tabs();
   window.location.hash = '#'
   page.classList.add('visible');
 
@@ -166,6 +210,9 @@ function renderInitialPage() {
 
 function renderTemplate(_pageselector, _template, _context, _target) {
   var template = document.querySelector(_template).innerHTML;
+  Handlebars.registerHelper("prettifyDate", function(timestamp) {
+    return new Date(timestamp).toLocaleString()
+  });
   var compiledTemplate = Handlebars.compile(template);
   var rendered = compiledTemplate(_context);
   document.querySelector(_target).innerHTML = rendered;
@@ -176,14 +223,28 @@ function renderTemplate(_pageselector, _template, _context, _target) {
 }
 
 function renderCartPage() {
-  /*if (order.sum !== 0)*/
-
-  /*document.querySelector('.fixed-action-btn').classList.add('scale-out');*/
   renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
-  /*else {
-    document.querySelector('.shopping-cart.page').style.display = 'block';
-    document.querySelector('.shopping-cart-empty').style.display = 'block';
-  }*/
+  if (authorized) {
+    var name = document.querySelector('#name');
+    var phone = document.querySelector('#phone_number');
+    
+    if ((name.value == '' && phone.value == '')|| settingsChanged){
+      getUser(function(user) {
+        var street = document.querySelector('#street');
+        var house = document.querySelector('#house');
+        user = JSON.parse(user);
+        name.value = user.name;
+        phone.value = user.phone;
+        if (user.street)
+          street.value = user.street;
+        if (user.house)
+          house.value = user.house;
+        Materialize.updateTextFields();
+        settingsChanged = false;
+      })
+    }
+    
+  }
 }
 
 function renderStorePage(storeId) {
@@ -458,7 +519,18 @@ function getItemAndStoreFromCart(itemId, storeId) {
 }
 
 
-
+/*get logged user*/
+function getUser (callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', root + '/api/v1/users', true);
+  xhr.onload = function () {
+    if(xhr.status == 200) {
+      var user = xhr.responseText;
+      callback(user);
+    }
+  }
+  xhr.send();
+}
 
 /*get items by store*/
 var getItems = function (store, callback) {
@@ -526,6 +598,18 @@ function getStoretypes(city, callback) {
   xhr.send()
 }
 
+function getOrders(callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', root + '/api/v1/orders', true);
+  xhr.onload = function () {
+    if (xhr.status == 200) {
+      var orders = xhr.responseText;
+      callback(orders);
+    }
+  }
+  xhr.send();
+}
+
 function formToObject(form) {
   var object = {};
   var formData = new FormData(document.querySelector(form));
@@ -546,7 +630,7 @@ function submitRegistrationForm() {
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.send(JSON.stringify(customerInfo));
     xhr.onloadend = function () {
-      window.location.hash = '#';
+      window.location.hash = 'account';
       $('#registeredModal').modal('open');
     }
   }
@@ -594,7 +678,117 @@ function submitOrderForm() {
 
 }
 
+function validateLoginForm(loginInfo) {
+  var valid = true;
+  if (loginInfo.password.length < 5 && !emailRegExp.test(loginInfo.email)) {
+    valid = false;
+  }
+  return valid;
+}
 
+function submitLoginForm() {
+  var loginInfo = formToObject('form.login');
+  if (validateLoginForm(loginInfo)) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', root + '/api/v1/session', true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.send(JSON.stringify(loginInfo));
+    xhr.onload = function () {
+      if (xhr.readyState == XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          var response = JSON.parse(xhr.responseText);
+          console.log(response.success);
+          if (response.success == true) {
+            console.log(response);
+            $('#loginModal').modal('close');
+            authorize();
+            window.location.hash = 'account';
+          }
+          else if (response.success == false) {
+            console.log(response);
+            alert('Неправильный email или пароль');
+          }
+        }
+
+      }
+    }
+  }
+
+  console.log(loginInfo)
+}
+
+function submitSettingsForm() {
+  var newSettings = formToObject('form.settings');
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', root + '/api/v1/users', true);
+  xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+  xhr.send(JSON.stringify(newSettings));
+  xhr.onload = function () {
+    if (xhr.readyState == XMLHttpRequest.DONE) {
+      if (xhr.status === 200) {
+        var response = JSON.parse(xhr.responseText);
+        if (response.success == true) {
+          //renderAccountPage();
+          //console.log(response);
+          settingsChanged = true;
+          Materialize.toast('Сохранено', 2000);
+        }
+        else {
+          Materialize.toast('Неправильный номер телефона');
+        }
+      }
+    }
+  }
+}
+
+
+
+function isAuthorized() {
+  getSessionStatus(function (sessionStatus) {
+    authorized = sessionStatus.authorized;
+  })
+}
+
+function getSessionStatus(callback) {
+  var xhr = new XMLHttpRequest;
+  xhr.open('GET', root + '/api/v1/session/status');
+  xhr.onload = function() {
+    if (xhr.status == 200) {
+      var sessionStatus = JSON.parse(xhr.responseText);
+      callback(sessionStatus);
+      
+    }
+  }
+
+  xhr.send()
+}
+
+function authorize() {
+  authorized = true;
+  setCookie('authorized', true, 999);
+}
+
+function accountButton() {
+  if (!authorized) {
+    $('#loginModal').modal('open');
+  }
+  else {
+    window.location.hash = 'account';
+  }
+}
+
+function logOutButton() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('DELETE', root + '/api/v1/session');
+  xhr.onload = function() {
+    if (xhr.status == 200) {
+      authorized = false;
+      setCookie('authorized', false, 999);
+      window.location.hash = '#';
+    }
+  }
+  xhr.send();
+}
 
 function goBack() {
   window.history.back();

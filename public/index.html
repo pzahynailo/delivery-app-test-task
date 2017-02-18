@@ -13,7 +13,7 @@
 	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
 	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
-
+	<link rel="shortcut icon" href="/favicon.ico" type="image/ico">
 
 	<!-- Compiled and minified CSS MATERIALIZE-->
 	<link rel="stylesheet" href="css/materialize.css">
@@ -43,7 +43,7 @@
 						<ul class="right">
 							<li>
 					
-								<a class="waves-effect waves-light" href="#loginModal"><i class="material-icons ">account_circle</i></a>
+								<a class="waves-effect waves-light" onclick="accountButton()"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
 								<a href="#" class="dropdown-button" data-activates="dropdownMenu1"> <i class="material-icons ">more_vert</i></a>
@@ -57,7 +57,6 @@
 								{{#each storetypes}}
 									<li class="tab" id = 'tab{{_id}}'><a href="#{{_id}}">{{name}}</a></li>
 								{{/each}}
-								<div id="test"></div>
 						</script>
 						
 					</div>
@@ -136,7 +135,7 @@
 
 						<ul class="right">
 							<li>
-								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
+								<a class="waves-effect waves-light   " onclick="accountButton()"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
 								<a href="#" class="dropdown-button"  data-activates="dropdownMenu2"> <i class="material-icons ">more_vert</i></a>
@@ -206,7 +205,7 @@
 						<ul class="right">
 							<li>
 					
-								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
+								<a class="waves-effect waves-light   " onclick="accountButton()"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
 								<a href="#" class="dropdown-button"  data-activates="dropdownMenu3"> <i class="material-icons ">more_vert</i></a>
@@ -278,7 +277,7 @@
 					</div>
 					<div class="row">
 						<div class="input-field col xs12">
-							<input type="number" class='' name='phone_number' id='phone_number' required>
+							<input type="tel" class='' pattern='^(?:\+?38)?0\d{9}$' name='phone_number' id='phone_number' required>
 							<label for="phone_number">Номер телефона</label>
 						</div>
 					</div>
@@ -338,7 +337,7 @@
 
 						<ul class="right">
 							<li>
-								<a class="waves-effect waves-light   " href="#loginModal"><i class="material-icons ">account_circle</i></a>
+								<a class="waves-effect waves-light   " onclick="accountButton()"><i class="material-icons ">account_circle</i></a>
 							</li>
 							<li>
 								<a href="#" class="dropdown-button"  data-activates="dropdownMenu4"> <i class="material-icons ">more_vert</i></a>
@@ -461,7 +460,126 @@
 
 		</div>
 		
-		
+		<div class="account page">
+			<!--navbar-->
+			<div class="navbar-fixed account">
+				<nav class='nav-extended'>
+					<div class="nav-wrapper">
+						
+						<ul class="left">
+							<li>
+								<a class=" waves-effect waves-light" onclick="goBack()">
+									<i class="material-icons " style='color:white;'>keyboard_backspace</i>
+								</a>
+							</li>
+						</ul>
+
+						<a class="brand-logo center">
+							
+						</a>
+
+						<ul class="right">
+							<li>
+								<a class="waves-effect waves-light   " onclick="accountButton()"><i class="material-icons ">account_circle</i></a>
+							</li>
+							<li>
+								<a href="#" class="dropdown-button"  data-activates="dropdownMenu6"> <i class="material-icons ">more_vert</i></a>
+							</li>
+						</ul>
+						
+						<ul class="tabs tabs-transparent tabs-fixed-width" id="navHorizontal-account">
+							<li class="tab"><a class='active' href="#userOrders">Заказы</a></li>
+							<li class="tab"><a href="#userSettings">Настройки</a></li>
+						</ul>
+
+					</div>
+
+				</nav>
+			</div>
+
+			<main>
+				<div id="userOrders">
+					<ul class="collapsible" id = "userOrdersTarget" data-collapsible="expandable">
+						
+					</ul>
+					<script id='userOrdersTemplate' type="text/x-handlebars-template">
+						{{#each orders}}
+							<li>
+								<div class="collapsible-header row">
+									<!--<table>-->
+										<!--<tr>-->
+											<!--<td>--><div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div><!--</td>-->
+											<!--<td>--><div class='orderHeader orderStatus  col xs4'>{{this.status}}</div><!--</td>-->
+											<!--<td>--><div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div><!--</td>-->
+										<!--</tr>-->
+									<!--</table>-->
+								</div>
+								<div class="collapsible-body">
+									<p>Адрес: {{this.customerInfo.street}}, {{this.customerInfo.house}}</p>
+									{{#orderItems}}
+										<ul class="collection with-header">
+											<li class="collection-header">{{name}}</li>
+											{{#items}}
+												<li class="collection-item">
+													<div class='item title'>{{name}}</div> 
+													<span class='secondary-content'>{{quantity}}x ₴{{price}}</span>
+												</li>
+											{{/items}}
+										</ul>
+									{{/orderItems}}
+								</div>
+							</li>
+						{{/each}}
+					</script>
+				</div>
+				<div id="userSettings">
+					<div class='settings-form container row z-depth-2'>
+						<div class="form-title top-title xs12">
+							Личные данные
+						</div>
+						<form class='col xs12 settings' action="javascript:void(0)" onsubmit="submitSettingsForm();" id='settingsForm'>
+							<div class='row'>
+								<div class="input-field col xs12">
+									<input type='text' class='' id='changedName' name='changedName' required>
+									<label for="changedName">Имя</label>
+								</div>
+							</div>
+							<div class="row">
+								<div class="input-field col xs9">
+									<input type='text' class='' id = 'changedStreet' name='changedStreet' required>
+									<label for='changedStreet'>Улица</label>
+								</div>
+								<div class='input-field col xs3'>
+									<input type='text' class='' id='changedHouse' name='changedHouse' required>
+									<label for="changedHouse">Дом</label>
+								</div>
+							</div>
+							<div class="row">
+								<div class="input-field col xs12">
+									<input type="tel" class='' pattern='^(?:\+?38)?0\d{9}$' id='changedPhoneNumber' name='changedPhoneNumber' required>
+									<label for="changedPhoneNumber">Номер телефона</label>
+								</div>
+							</div>
+							
+
+							<button class="btn-flat save col xs12">
+								Сохранить
+							</button>
+							<a onclick="logOutButton();" class="btn-flat logout col xs12 ">Выйти</a>
+						</form>
+
+								
+					</div>
+				</div>
+			</main>
+
+			
+			
+
+			
+
+		</div>
+
 		<ul class="dropdown-content" id="dropdownMenu1">
 			<li><a href="#delivery">Условия доставки</a></li>
 			<li><a href="">Контакты</a></li>
@@ -487,6 +605,11 @@
 			<li><a href="">Контакты</a></li>
 			<li><a href="#city-modal">Выбор города</a></li>
 		</ul>
+		<ul class="dropdown-content" id="dropdownMenu6">
+			<li><a href="#delivery">Условия доставки</a></li>
+			<li><a href="">Контакты</a></li>
+			<li><a href="#city-modal">Выбор города</a></li>
+		</ul>
 
 
 		<div class="modal" id="city-modal">
@@ -505,32 +628,32 @@
 					<a  class='modal-action right modal-close waves-effect waves-green btn-flat col xs2'><i class="material-icons">close</i></a>
 				</span>
 				<div class='row'>
-					<form class="col xs12 ">
+					<form class="col xs12 login" action="javascript:void(0)" onsubmit="submitLoginForm();" id='loginForm'>
 						<div class="row">
 							<div class="input-field col xs12 s12 m6 l6">
-								<input type="email" class='validate' id="email">
+								<input type="email" class='validate' name="email" id="email" required>
 								<label for="email">Email</label>
 							</div>
 							<div class="input-field col xs12 s12 m6 l6">
-								<input type="password" class="validate" id="password">
+								<input type="password" class="validate" pattern=".{5,}" name="password" id="password" required>
 								<label for="password">Password</label>
 							</div>
 						</div>
 						<div class="row">
-
-							<div class="col xs12 m5">
-								<input type="checkbox" id="rememberme">
-								<label for="rememberme">Remember Me</label>
-							</div>
-							<a href="#" class="btn waves-effect waves-green col xs12 m7">Войти</a>
+							<input type="checkbox" id="rememberme">
+							<label for="rememberme">Remember Me</label>
+							
+							<button class="btn-flat waves-effect waves-green login">Войти</button>
 						</div>
 
 					</form>
 				</div>
 				<br>
 				<div class="modal-footer row">
-					<span class='col xs12 m5'>Нет аккаунта?</span>
-					<a href='#register' class='modal-action modal-close waves-effect waves-green btn col xs12 m7'>Создать</a>
+					<div class='registerFooter'>
+						<span class=''>Нет аккаунта?</span>
+						<a href='#register' class='modal-action modal-close waves-effect waves-green  '>Создать</a>
+					</div>
 				</div>
 			</div>
 
@@ -552,8 +675,8 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
 	<!--handlebars.js-->
 	<script src="js/handlebars-v4.0.5.js"></script>
-	<!--async.js-->
-	<script src="js/async.js"></script>
+	<!---async.js
+	<script src="js/async.js"></script>-->
 	<!-- main script -->
 	<script src="js/main.js"></script>
 </body>

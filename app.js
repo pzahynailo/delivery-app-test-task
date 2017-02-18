@@ -1,29 +1,37 @@
-var express = require('express');
-var assert = require('assert');
-var bodyParser = require('body-parser');
-var async = require('async')
-const crypto = require('crypto')
-const hash = crypto.createHash('sha256');
-var monk = require('monk')
-//var favicon = require('serve-favicon')
+let express = require('express');
+let session = require('express-session');
+let assert = require('assert');
+let bodyParser = require('body-parser');
+let async = require('async');
+const crypto = require('crypto');
 
-var port = 3001;
-var app = express()
-var mongo = require('mongodb')
+let monk = require('monk');
+let favicon = require('serve-favicon')
+
+let port = 3001;
+let app = express()
+let mongo = require('mongodb')
 const db = monk('localhost:27017/gorilladb')
-
+app.use(favicon(__dirname + '/favicon.ico'))
 
 // Connection URL
-var url = 'mongodb://localhost:27017/gorilladb';
+let url = 'mongodb://localhost:27017/gorilladb';
+
 app.use(express.static('public'))
 app.use(bodyParser.json())
-//app.use(favicon(__dirname + '/favicon.ico'))
+
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true
+}))
+
 app.get('/', function (req, res) {
     res.sendFile('index.html')
 })
 // Use connect method to connect to the server
 
-/*var findDocuments = function (db, collection, constraints, callback) {
+/*let findDocuments = function (db, collection, constraints, callback) {
     db.collection(collection).find(constraints).toArray((err, storetypesArray) => {
         callback(err, storetypesArray)
     })
@@ -64,15 +72,15 @@ app.use('/api/:version', (req, res, next) => {
 
 app.get('/api/:version/storetypes', (req, res) => {
     res.set('Content-Type', 'application/json')
-
+    console.log(req.session.user)
     const storetypes = db.get('storetypes');
 
-    storetypes.find({}, {sort: {_id: 1}}).then((storetypesArray) => {
+    storetypes.find({}, { sort: { _id: 1 } }).then((storetypesArray) => {
         if (req.query.city === undefined) {
 
-           
 
-            var storetypesJSON = {
+
+            let storetypesJSON = {
                 storetypes: storetypesArray
             }
             res.json(storetypesJSON)
@@ -80,11 +88,11 @@ app.get('/api/:version/storetypes', (req, res) => {
         }
 
         else {
-            var result = [];
+            let result = [];
             const stores = db.get('stores');
-            async.series([ 
-                function(callback) {
-                    async.eachOfSeries(storetypesArray, function(item, index, innercallback) {
+            async.series([
+                function (callback) {
+                    async.eachOfSeries(storetypesArray, function (item, index, innercallback) {
                         stores.find({ "cityId": monk.id(req.query.city.toString()), "typeId": item._id }).then((storesArray) => {
                             if (storesArray.length !== 0) {
                                 result.push(item);
@@ -101,9 +109,9 @@ app.get('/api/:version/storetypes', (req, res) => {
                 }
                 ,
                 function (callback) {
-                   
 
-                    var storetypesJSON = {
+
+                    let storetypesJSON = {
                         storetypes: result
                     }
                     res.json(storetypesJSON)
@@ -126,8 +134,8 @@ app.get('/api/:version/stores', (req, res) => {
     res.set('Content-Type', 'application/json')
     if (req.query.city === undefined && req.query.type === undefined && req.query.id === undefined) {
         stores.find({}).then((storesArray) => {
-            
-            var storesJSON = {
+
+            let storesJSON = {
                 stores: storesArray
             }
             res.json((storesJSON))
@@ -136,19 +144,19 @@ app.get('/api/:version/stores', (req, res) => {
     }
     else if (req.query.city !== undefined && req.query.type === undefined && req.query.id === undefined) {
         stores.find({ "cityId": monk.id(req.query.city.toString()) }).then((storesArray) => {
-            var storesJSON = {
+            let storesJSON = {
                 stores: storesArray
             }
             res.json((storesJSON))
             res.end()
         })
     }
-    else if (req.query.city === undefined && req.query.type !== undefined){
+    else if (req.query.city === undefined && req.query.type !== undefined) {
 
     }
-    else if (req.query.city === undefined && req.query.type === undefined && req.query.id !== undefined){
-        stores.find({"_id": monk.id(req.query.id.toString())}).then((storesArray) => {
-            var storesJSON = {
+    else if (req.query.city === undefined && req.query.type === undefined && req.query.id !== undefined) {
+        stores.find({ "_id": monk.id(req.query.id.toString()) }).then((storesArray) => {
+            let storesJSON = {
                 stores: storesArray
             }
             res.json((storesJSON))
@@ -156,8 +164,8 @@ app.get('/api/:version/stores', (req, res) => {
         })
     }
     else {
-        stores.find({"cityId": monk.id(req.query.city.toString()), "typeId": monk.id(req.query.type.toString())}).then((storesArray) => {
-            var storesJSON = {
+        stores.find({ "cityId": monk.id(req.query.city.toString()), "typeId": monk.id(req.query.type.toString()) }).then((storesArray) => {
+            let storesJSON = {
                 stores: storesArray
             }
             res.json((storesJSON))
@@ -173,7 +181,7 @@ app.get('/api/:version/items', (req, res) => {
     res.set('Content-Type', 'application/json')
     if (req.query.store === undefined) {
         items.find({}).then((itemsArray) => {
-            var itemsJSON = {
+            let itemsJSON = {
                 items: itemsArray
             }
             res.json(itemsJSON)
@@ -182,7 +190,7 @@ app.get('/api/:version/items', (req, res) => {
     }
     else {
         items.find({ "storeId": monk.id(req.query.store.toString()) }).then((itemsArray) => {
-            var itemsJSON = {
+            let itemsJSON = {
                 items: itemsArray
             }
             res.json(itemsJSON)
@@ -197,7 +205,7 @@ app.get('/api/:version/cities', (req, res) => {
     res.set('Content-Type', 'application/json')
     if (req.query.city === undefined) {
         cities.find({}).then((citiesArray) => {
-            var citiesJSON = {
+            let citiesJSON = {
                 cities: citiesArray
             }
             res.json(citiesJSON)
@@ -206,7 +214,7 @@ app.get('/api/:version/cities', (req, res) => {
     }
     else {
         cities.find({ "_id": monk.id(req.query.city.toString()) }).then((citiesArray) => {
-            var citiesJSON = {
+            let citiesJSON = {
                 cities: citiesArray
             }
             res.json(citiesJSON)
@@ -215,40 +223,73 @@ app.get('/api/:version/cities', (req, res) => {
     }
 })
 
+
+
+/*get orders of user*/
+app.get('/api/:version/orders', (req, res) => {
+    if (!req.session.user) return res.sendStatus(400)
+    const orders = db.get('orders');
+
+    orders.find({'customerInfo.userId': monk.id(req.session.user.id)}, {sort: {'createdAt': -1}}).then((ordersArray) => {
+        let ordersJSON = {
+            orders: ordersArray
+        }
+        res.json(ordersJSON);
+        res.end();
+    })
+})
+
 /*add new order*/
 app.post('/api/:version/orders', (req, res) => {
     if (!req.body) return res.sendStatus(400)
     const orders = db.get('orders');
     let order = req.body;
-    var phoneRegExp = /^(?:\+?38)?0\d{9}$/;
-    
+    let phoneRegExp = /^(?:\+?38)?0\d{9}$/;
+
     if (order.sum <= 0 || order.customerInfo.name === '' || order.customerInfo.street === '' || order.customerInfo.house === '' || !phoneRegExp.test(order.customerInfo.phone_number)) {
         return res.sendStatus(400);
     }
+    if (req.session.user) {
+        order.customerInfo.userId = monk.id(req.session.user.id);
+    }
+    order.createdAt = new Date();
+    order.status = 'processing';
     orders.insert(order)
-    console.log(order.customerInfo);
     res.end();
 })
 
 
+
+/**/
+app.get('/api/:version/users', (req,res) => {
+    if (!req.session.user) return res.sendStatus(400)
+    const users = db.get('users');
+
+    users.findOne({_id: monk.id(req.session.user.id)}).then((user) => {
+        res.json(user);
+        res.end();
+    })
+})
+
 /*register new user*/
 app.post('/api/:version/users', (req, res) => {
-    function getGeneratedSalt (length) {
+    function getGeneratedSalt(length) {
         return Math.random().toString(36).substr(2, length);
     }
     if (!req.body) return res.sendStatus(400);
+    const hash = crypto.createHash('sha256');
     const users = db.get('users');
     const roles = db.get('roles');
     let user = req.body;
-    var phoneRegExp = /^(?:\+?38)?0\d{9}$/;
-    if (user.regEmail === '' || user.regHouse === '' || user.RegName === '' || user.regPassword === '' || !phoneRegExp.test(user.regPhoneNumber) || user.regStreet === '') {
+    let phoneRegExp = /^(?:\+?38)?0\d{9}$/;
+    if (user.regEmail === '' || user.regHouse === '' || user.regName === '' || user.regPassword === '' || !phoneRegExp.test(user.regPhoneNumber) || user.regStreet === '') {
         return res.sendStatus(400);
     }
-    var userSalt = getGeneratedSalt(6);
+    let userSalt = getGeneratedSalt(6);
     hash.update(user.regPassword)
         .update(userSalt);
-    roles.findOne({name: 'User'}).then(function (role) {
-        var registeredUser = {
+    roles.findOne({ name: 'User' }).then(function (role) {
+        let registeredUser = {
             name: user.regName,
             password: hash.digest('hex'),
             salt: userSalt,
@@ -258,10 +299,76 @@ app.post('/api/:version/users', (req, res) => {
             cityId: monk.id(user.city)
         }
         users.insert(registeredUser);
+        req.session.user = registeredUser;
         res.end();
+        
     })
+
+})
+
+/*update user*/
+app.put('/api/:version/users', (req,res) => {
+    if (!req.body) return res.sendStatus(400);
+    res.set('Content-Type', 'application/json')
+    const users = db.get('users');
+    users.update({_id: monk.id(req.session.user.id)}, {$set: {phone: req.body.changedPhoneNumber, name: req.body.changedName, street: req.body.changedStreet, house: req.body.changedHouse}})
+    res.json({success: true})
+    res.end();
+})
+
+
+/*login user*/
+app.post('/api/:version/session', (req, res) => {
+    if (!req.body) return res.sendStatus(400);
+    res.set('Content-Type', 'application/json')
+    const users = db.get('users');
+    let user = req.body;
+    const hash = crypto.createHash('sha256');
+    console.log(user.email);
+
+    let response = { success: false };
+    users.findOne({ email: user.email }).then((userBD) => {
+        if (userBD != null) {
+            console.log(userBD);
+            
+            hash.update(user.password)
+                .update(userBD.salt);
+            if (hash.digest('hex') == userBD.password) {
+                response.success = true;
+                user.id = userBD._id;
+                req.session.user = user;
+                console.log(req.session)
+            }
+            console.log(response);
+            res.json(response);
+            res.end();
+        }
+        else {
+            res.json(response);
+            res.end();
+        }
+        
+
+    })
+
+
+})
+/*logout*/
+app.del('/api/:version/session', (req,res) => {
+    if(req.session) {
+        req.session.destroy(err => {
+            if (err) res.sendStatus(401);
+            res.end();
+        })
+    }
     
 })
+app.get('/api/:version/session/status', (req, res) => {
+    res.json({authorized: (req.session.user != undefined)});
+    res.end();
+})
+
+
 
 app.listen(port, function () {
     console.log('app listening on port ' + port)
