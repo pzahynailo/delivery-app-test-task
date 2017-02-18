@@ -354,7 +354,7 @@ app.post('/api/:version/session', (req, res) => {
 
 })
 /*logout*/
-app.del('/api/:version/session', (req,res) => {
+app.delete('/api/:version/session', (req,res) => {
     if(req.session) {
         req.session.destroy(err => {
             if (err) res.sendStatus(401);
