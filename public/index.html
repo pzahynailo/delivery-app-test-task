@@ -440,7 +440,7 @@
 					</div>
 					<div class="row">
 						<div class="input-field col xs12">
-							<input type="number" class='' id='regPhoneNumber' name='regPhoneNumber' required>
+							<input type="tel" class='' pattern='^(?:\+?38)?0\d{9}$' id='regPhoneNumber' name='regPhoneNumber' required>
 							<label for="regPhoneNumber">Номер телефона</label>
 						</div>
 					</div>
@@ -499,38 +499,7 @@
 
 			<main>
 				<div id="userOrders">
-					<ul class="collapsible" id = "userOrdersTarget" data-collapsible="expandable">
-						
-					</ul>
-					<script id='userOrdersTemplate' type="text/x-handlebars-template">
-						{{#each orders}}
-							<li>
-								<div class="collapsible-header row">
-									<!--<table>-->
-										<!--<tr>-->
-											<!--<td>--><div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div><!--</td>-->
-											<!--<td>--><div class='orderHeader orderStatus  col xs4'>{{this.status}}</div><!--</td>-->
-											<!--<td>--><div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div><!--</td>-->
-										<!--</tr>-->
-									<!--</table>-->
-								</div>
-								<div class="collapsible-body">
-									<p>Адрес: {{this.customerInfo.street}}, {{this.customerInfo.house}}</p>
-									{{#orderItems}}
-										<ul class="collection with-header">
-											<li class="collection-header">{{name}}</li>
-											{{#items}}
-												<li class="collection-item">
-													<div class='item title'>{{name}}</div> 
-													<span class='secondary-content'>{{quantity}}x ₴{{price}}</span>
-												</li>
-											{{/items}}
-										</ul>
-									{{/orderItems}}
-								</div>
-							</li>
-						{{/each}}
-					</script>
+					<div class='ordersEmpty'>Список пока пуст. <a onclick='renderInitialPage()'>Начать заказывать</a></div>				
 				</div>
 				<div id="userSettings">
 					<div class='settings-form container row z-depth-2'>
@@ -572,7 +541,37 @@
 					</div>
 				</div>
 			</main>
-
+			<script id='userOrdersTemplate' type="text/x-handlebars-template">
+					<ul class="collapsible popout"  data-collapsible="expandable">
+						{{#each orders}}
+							<li>
+								<div class="collapsible-header row">
+									<!--<table>-->
+										<!--<tr>-->
+											<!--<td>--><div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div><!--</td>-->
+											<!--<td>--><div class='orderHeader orderStatus  col xs4'>{{this.status}}</div><!--</td>-->
+											<!--<td>--><div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div><!--</td>-->
+										<!--</tr>-->
+									<!--</table>-->
+								</div>
+								<div class="collapsible-body">
+									<p>Адрес: {{this.customerInfo.street}}, {{this.customerInfo.house}}</p>
+									{{#orderItems}}
+										<ul class="collection with-header">
+											<li class="collection-header">{{name}}</li>
+											{{#items}}
+												<li class="collection-item">
+													<div class='item title'>{{name}}</div> 
+													<span class='secondary-content'>{{quantity}}x ₴{{price}}</span>
+												</li>
+											{{/items}}
+										</ul>
+									{{/orderItems}}
+								</div>
+							</li>
+						{{/each}}
+						</ul>
+					</script>
 			
 			
 

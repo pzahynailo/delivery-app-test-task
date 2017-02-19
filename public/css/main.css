@@ -266,12 +266,15 @@ ul.collection li.collection-item {
     margin-bottom: 0px;
 }
 .orderSum {
-    float: right;
+    text-align: right;
 }
 .orderStatus {
     text-align: center; 
 }
-
+.ordersEmpty {
+    padding-left: 20px;
+    padding-top: 20px;
+}
 .collapsible-body .collection.with-header .collection-header {
     background-color: white;
 }
