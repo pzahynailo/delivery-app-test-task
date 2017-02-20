@@ -188,7 +188,7 @@ ul.collection li.collection-item {
     display: block;
 }
 .item.title {
-    margin-right: 30px;
+    margin-right: 35px;
 }
 .address {
     color: rgba(0,0,0,0.6);
@@ -248,7 +248,9 @@ ul.collection li.collection-item {
 }
 .account.visible, 
 .account.visible .navbar-fixed,
-.account.visible #userOrders {
+.account.visible #userOrders,
+.account.visible #userSettings,
+.account.visible #deliveryOrders {
     display: block;
 }
 
@@ -301,6 +303,11 @@ ul.collection li.collection-item {
     color: red;
     text-align: center;
 }   
+
+#deliveryTab {
+    display:none;
+}
+
 /*delivery page*/
 .delivery {
     display: none;

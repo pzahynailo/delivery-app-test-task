@@ -8,9 +8,9 @@ let express = require('express'),
 const db = monk('localhost:27017/gorilladb');
 
 const restrictedPaths = {
-    GET: ['orders'],
+    GET: ['orders', 'delivery/orders'],
     POST: [],
-    PUT: ['users'],
+    PUT: ['users', 'delivery/orders'],
     DELETE: ['session']
 };
 const phoneRegExp = /^(?:\+?38)?0\d{9}$/;
@@ -97,6 +97,99 @@ router.get('/:version/cities', (req, res) => {
         res.json({cities: cities});
         res.end();
     });
+})
+/*processing, preparing, delivering, cancelled, completed*/
+
+
+router.get('/:version/delivery/orders', (req, res) => {
+    
+    if (req.session.user !== undefined) {
+        console.log(req.session.user);
+        db.get('users').findOne({'_id': monk.id(req.session.user.id)}).then(user => {
+            db.get('roles').findOne({'_id': user.roleId}).then(role => {
+                if (role.permissions.includes('delivery')) {
+                    db.get('orders').find({$or: [{'status': 'preparing'}, {'status': 'delivering', 'deliverymanId': monk.id(req.session.user.id)}]}, {sort: {'createdAt': -1}}).then(orders => {
+                        res.json({orders: orders});
+                        res.end();
+                    })
+                }
+                else {
+                    res.sendStatus(403);
+                }
+            })
+        })
+    }
+    else {
+        res.sendStatus(403);
+    }
+})
+
+router.put('/:version/delivery/orders', (req, res) => {
+    
+    if (req.session.user !== undefined) {
+        console.log(req.session.user)    
+        db.get('users').findOne({'_id': monk.id(req.session.user.id)}).then(user => {
+            db.get('roles').findOne({'_id': user.roleId}).then(role => {
+                if (role.permissions.includes('delivery')) {
+                    db.get('orders').findOne({'_id': monk.id(req.body.id)}, {sort: {'createdAt': -1}}).then(order => {
+                        if (order !== null) {
+                            console.log(order);
+                            if (order.status == 'preparing') {
+                                db.get('orders').update({'_id': monk.id(req.body.id)}, {$set: {'status': 'delivering', 'deliverymanId': monk.id(req.session.user.id)}}).then(() => {
+                                    res.sendStatus(200);
+                                })
+                            }
+                            else {
+                                
+                                res.sendStatus(403);
+                            }
+                        }
+                        else {
+                            res.sendStatus(404);
+                        }
+                    })
+                }
+                else {
+                    res.sendStatus(403);
+                }
+            })
+        })
+    }
+    else {
+        res.sendStatus(403);
+    }
+})
+
+router.put('/:version/delivery/orders/complete', (req, res) => {
+    if (req.session.user !== undefined) {
+        db.get('users').findOne({'_id': monk.id(req.session.user.id)}).then(user => {
+            db.get('roles').findOne({'_id': user.roleId}).then(role => {
+                if (role.permissions.includes('delivery')) {
+                    db.get('orders').findOne({'_id': monk.id(req.body.id)}, {sort: {'createdAt': -1}}).then(order => {
+                        if (order !== null) {
+                            if (order.status == 'delivering' && order.deliverymanId == req.session.user.id) {
+                                db.get('orders').update({'_id': monk.id(req.body.id)}, {$set: {'status': 'completed', 'completedAt': new Date()}}).then( ()=>{
+                                    res.sendStatus(200);
+                                })
+                            }
+                            else {
+                                res.sendStatus(403);
+                            }
+                        }
+                        else {
+                            res.sendStatus(404);
+                        }
+                    })
+                }
+                else {
+                    res.sendStatus(403);
+                }
+            })
+        })
+    }
+    else {
+        res.sendStatus(403);
+    }
 })
 
 /*get orders of user*/

@@ -129,7 +129,7 @@
 						</ul>
 						
 
-						<a class="brand-logo center storename">
+						<a class="brand-logo center" id='storename'>
 
 						</a>
 
@@ -234,7 +234,7 @@
 						<div class="item title"><a class='btn-floating btn-flat waves-effect waves-light' onclick="removeFromCartButton('{{id}}', '{{../id}}', '{{price}}')"><i class="material-icons" style='color: darkcyan'>close</i></a>{{name}}<br></div>
 						<div class="input-field">
 							<a class="btn-floating waves-effect waves-light btn-flat" onclick="decrementItemButton('{{id}}', '{{../id}}', '{{price}}')"><i class="material-icons" style='color: darkcyan'>remove</i></a>
-							<input type ="number" min="0" class="quantity id{{id}}"  oninput="changeQuantityByInput('{{id}}', '{{../id}}', this.value, '{{price}}')" value="{{quantity}}" >
+							<input type ="tel" class="quantity id{{id}}"  oninput="changeQuantityByInput('{{id}}', '{{../id}}', this.value, '{{price}}')" value="{{quantity}}" >
 							<a class="btn-floating waves-effect waves-light btn-flat" onclick="incrementItemButton('{{id}}', '{{../id}}', '{{price}}', '{{name}}')"><i class="material-icons" style='color: darkcyan'>add</i></a>
 						</div><br>
 						<p>Цена: ₴{{price}}</p>
@@ -490,6 +490,7 @@
 						<ul class="tabs tabs-transparent tabs-fixed-width" id="navHorizontal-account">
 							<li class="tab"><a class='active' href="#userOrders">Заказы</a></li>
 							<li class="tab"><a href="#userSettings">Настройки</a></li>
+							<li class="tab" id="deliveryTab"><a href="#deliveryOrders">Доставка</a></li>
 						</ul>
 
 					</div>
@@ -540,46 +541,73 @@
 								
 					</div>
 				</div>
+				<div id="deliveryOrders">
+
+				</div>
 			</main>
 			<script id='emptyOrdersTemplate' type="text/x-handlebars-template">
 				<div class='ordersEmpty'>Список пока пуст. <a onclick='renderInitialPage()'>Начать заказывать</a></div>
 			</script>
-			<script id='userOrdersTemplate' type="text/x-handlebars-template">
-					<ul class="collapsible popout"  data-collapsible="expandable">
-						{{#each orders}}
-							<li>
-								<div class="collapsible-header row">
-									<!--<table>-->
-										<!--<tr>-->
-											<!--<td>--><div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div><!--</td>-->
-											<!--<td>--><div class='orderHeader orderStatus  col xs4'>{{this.status}}</div><!--</td>-->
-											<!--<td>--><div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div><!--</td>-->
-										<!--</tr>-->
-									<!--</table>-->
-								</div>
-								<div class="collapsible-body">
-									<p>Адрес: {{this.customerInfo.street}}, {{this.customerInfo.house}}</p>
-									{{#orderItems}}
-										<ul class="collection with-header">
-											<li class="collection-header">{{name}}</li>
-											{{#items}}
-												<li class="collection-item">
-													<div class='item title'>{{name}}</div> 
-													<span class='secondary-content'>{{quantity}}x ₴{{price}}</span>
-												</li>
-											{{/items}}
-										</ul>
-									{{/orderItems}}
-								</div>
-							</li>
-						{{/each}}
-						</ul>
-					</script>
-			
-			
-
-			
-
+			<script id='userOrdersTemplate' type="text/x-handlebars-template">	
+				<ul class="collapsible popout"  data-collapsible="expandable">
+					{{#each orders}}
+						<li>
+							<div class="collapsible-header row">
+								<div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div>
+								<div class='orderHeader orderStatus  col xs4'>{{this.status}}</div>
+								<div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div>
+							</div>
+							<div class="collapsible-body">
+								<p>Адрес: {{this.customerInfo.street}}, {{this.customerInfo.house}}</p>
+								{{#orderItems}}
+									<ul class="collection with-header">
+										<li class="collection-header">{{name}}</li>
+										{{#items}}
+											<li class="collection-item">
+												<div class='item title'>{{name}}</div> 
+												<span class='secondary-content'>{{quantity}}x ₴{{price}}</span>
+											</li>
+										{{/items}}
+									</ul>
+								{{/orderItems}}
+							</div>
+						</li>
+					{{/each}}
+				</ul>
+			</script>
+			<script id="deliveryOrdersTemplate" type="text/x-handlebars-template">
+				<ul class="collapsible popout"  data-collapsible="expandable">
+					{{#each orders}}
+						<li>
+							<div class="collapsible-header row">
+								<div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div>
+								<div class='orderHeader orderStatus col xs4'>{{this.status}}</div>
+								<div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div>
+							</div>
+							<div class="collapsible-body">
+								<p>Имя клиента: {{this.customerInfo.name}}</p>
+								<p>Номер телефона: {{this.customerInfo.phone_number}}</p>
+								<p>Адрес: {{this.customerInfo.street}}, {{this.customerInfo.house}}</p>
+								{{#orderItems}}
+									<ul class="collection with-header">
+										<li class="collection-header">{{name}}</li>
+										{{address}}
+										{{#items}}
+											<li class="collection-item">
+												<div class='item title'>{{name}}</div> 
+												<span class='secondary-content'>{{quantity}}x ₴{{price}}</span>
+											</li>
+										{{/items}}
+									</ul>
+								{{/orderItems}}
+								<a class='btn deliveryButton' onclick='deliveryButton("{{this._id}}", "{{this.status}}");'>{{deliveryButtonText this.status}}</a>
+							</div>
+						</li>
+					{{/each}}
+				</ul>
+			</script>
+		
+		
 		</div>
 
 		<ul class="dropdown-content" id="dropdownMenu1">
@@ -642,8 +670,8 @@
 							</div>
 						</div>
 						<div class="row">
-							<input type="checkbox" id="rememberme">
-							<label for="rememberme">Remember Me</label>
+<!--							<input type="checkbox" id="rememberme">
+							<label for="rememberme">Remember Me</label>-->
 							
 							<button class="btn-flat waves-effect waves-green login">Войти</button>
 						</div>

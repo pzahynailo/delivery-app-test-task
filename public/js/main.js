@@ -41,6 +41,14 @@ $(document).ready(function () {
   if (currentCity == '') {
     $('#city-modal').modal('open');
   }
+  Handlebars.registerHelper("deliveryButtonText", function (status) {
+    if (status == 'preparing') {
+      return 'Взять заказ';
+    }
+    if (status == 'delivering') {
+      return 'Доставка окончена';
+    }
+  });
 });
 
 
@@ -66,7 +74,6 @@ function render(url) {
     //Single Store Page
     '#store': function () {
       let storeId = url.split('#store/')[1].trim();
-      //console.log(storeId)
       renderStorePage(storeId);
     },
     //Shopping Cart Page
@@ -109,13 +116,13 @@ function render(url) {
 }
 
 function renderTemplate(_pageselector, _template, _context, _target) {
-  let template = document.querySelector(_template).innerHTML;
+  let template = document.getElementById(_template).innerHTML;
   Handlebars.registerHelper("prettifyDate", function (timestamp) {
     return new Date(timestamp).toLocaleString()
   });
   let compiledTemplate = Handlebars.compile(template);
   let rendered = compiledTemplate(_context);
-  document.querySelector(_target).innerHTML = rendered;
+  document.getElementById(_target).innerHTML = rendered;
   if (_pageselector !== null) {
     let page = document.querySelector(_pageselector);
     page.classList.add('visible');
@@ -135,17 +142,24 @@ function renderAccountPage() {
         return;
       }
       if (orders.orders.length !== 0) {
-        renderTemplate('.account.page', '#userOrdersTemplate', orders, '#userOrders');
-        $(document).ready(function () {
-          $('.collapsible').collapsible();
-        });
+        renderTemplate('.account.page', 'userOrdersTemplate', orders, 'userOrders');
+        $('.collapsible').collapsible();
+        
       }
       else {
-        renderTemplate('.account.page', '#emptyOrdersTemplate', {}, '#userOrders');
+        renderTemplate('.account.page', 'emptyOrdersTemplate', {}, 'userOrders');
       }
       $('.account.page ul.tabs').tabs();
     })
-
+    xhr('GET', '/api/v1/delivery/orders', {}, function (statusCode, orders) {
+      if (statusCode < 400) {
+        renderTemplate(null, 'deliveryOrdersTemplate', orders, 'deliveryOrders');
+        $('.collapsible').collapsible();
+        document.getElementById("deliveryTab").style.display = 'block';
+      }
+      else
+        document.getElementById("deliveryTab").style.display = 'none';
+    })
   }
   else {
     window.location.hash = '#';
@@ -167,21 +181,18 @@ function renderInitialPage() {
         console.error(statusCode);
         return;
       }
-      renderTemplate(null, '#storetypelist-template', storetypes, '#navHorizontal-allstores');
+      renderTemplate(null, 'storetypelist-template', storetypes, 'navHorizontal-allstores');
       let lis = document.querySelectorAll('#navHorizontal-allstores li');
       for (let i = 0, ll = lis.length; i < ll; i++) {
         lis[i].addEventListener('click', function () {
           renderStoresOfType(currentCity, storetypes.storetypes[i]._id);
         }, false)
       }
-      renderTemplate(null, '#storelistUL-template', storetypes, '#store-list');
+      renderTemplate(null, 'storelistUL-template', storetypes, 'store-list');
 
       $('ul.tabs').tabs();
       $('ul.tabs').tabs('select_tab', storetypes.storetypes[0]._id);
 
-      /*$('ul.tabs').tabs({
-      swipeable: true
-    })*/
       document.getElementById('tab' + storetypes.storetypes[0]._id).dispatchEvent(new Event('click'));
     })
   }
@@ -190,6 +201,61 @@ function renderInitialPage() {
   }
   window.location.hash = '#'
   document.querySelector('.all-stores.page').classList.add('visible');
+}
+
+function renderCartPage() {
+  renderTemplate('.shopping-cart.page', 'shopping-cart-template', order, 'shopping-cart-list');
+}
+
+function renderStorePage(storeId) {
+  let page = document.querySelector('.single-store.page');
+  xhr('GET', '/api/v1/items', {'storeId': storeId}, function (statusCode, items) {
+    if (statusCode >= 400) {
+      console.error(statusCode);
+      return;
+    }
+    renderTemplate('.single-store.page', 'single-store-template', items, 'single-store-row');
+  })
+  xhr('GET', '/api/v1/stores', {_id: storeId}, function (statusCode, store) {
+    if (statusCode >= 400) {
+      console.error(statusCode);
+      return;
+    }
+    renderTemplate(null, 'storename-template', store.stores[0], 'storename');
+  })
+
+  page.style.height = parseInt(page.style.height) + 60 + 'px';
+  page.classList.add('visible');
+}
+
+function renderStores(stores, type) {
+  renderTemplate(null, 'storelist-template', stores, type);
+    let storesDOM = document.getElementById(type).children;
+    for (let i = 0; i < storesDOM.length; i++) {
+      let id = storesDOM[i].id;
+      storesDOM[i].addEventListener('click', function () {
+        window.location.hash = "store/" + id;
+      }, false)
+    }
+}
+
+function renderStoresOfType(currentCity, type) {
+  if (storesItems !== undefined && storesItems[type] !== undefined) {
+    renderStores(storesItems[type], type);
+  }
+  else {    
+    xhr('GET', '/api/v1/stores', {cityId: currentCity, typeId: type},  function (statusCode, stores) {
+      if (statusCode >= 400) {
+        console.error(statusCode);
+        return;
+      }
+      renderStores(stores, type);
+    })
+  }
+}
+
+function renderErrorPage() {
+
 }
 
 function updateUserInfo() {
@@ -217,92 +283,27 @@ function updateUserInfo() {
   })
 }
 
-function renderCartPage() {
-  renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
-}
-
-function renderStorePage(storeId) {
-  let page = document.querySelector('.single-store.page');
-  xhr('GET', '/api/v1/items', {'storeId': storeId}, function (statusCode, items) {
-    if (statusCode >= 400) {
-      console.error(statusCode);
-      return;
-    }
-    renderTemplate('.single-store.page', '#single-store-template', items, '#single-store-row');
-  })
-  xhr('GET', '/api/v1/stores', {_id: storeId}, function (statusCode, store) {
-    if (statusCode >= 400) {
-      console.error(statusCode);
-      return;
-    }
-    renderTemplate(null, '#storename-template', store.stores[0], '.brand-logo.center.storename');
-  })
-  let htmlEl = document.getElementsByTagName('html')[0];
-
-  page.style.height = parseInt(page.style.height) + 60 + 'px';
-
-  page.classList.add('visible');
-}
-
-
-function renderStoresOfType(currentCity, type) {
-  if (storesItems !== undefined && storesItems[type] !== undefined) {
-    let template = document.getElementById("storelist-template").innerHTML;
-    let compiledTemplate = Handlebars.compile(template);
-    let rendered = compiledTemplate(storesItems[type]);
-    document.getElementById(type).innerHTML = rendered;
-
-    let storesDOM = document.getElementById(type).children;
-    for (let i = 0; i < storesDOM.length; i++) {
-      let id = storesDOM[i].id;
-      storesDOM[i].addEventListener('click', function () {
-        window.location.hash = "store/" + id;
-      }, false)
-    }
-  }
-  else {
-    
-    xhr('GET', '/api/v1/stores', {cityId: currentCity, typeId: type},  function (statusCode, stores) {
-      if (statusCode >= 400) {
-        console.error(statusCode);
-        return;
-      }
-      storesItems[type] = stores;
-      let template = document.getElementById("storelist-template").innerHTML;
-      let compiledTemplate = Handlebars.compile(template);
-      let rendered = compiledTemplate(stores);
-      document.getElementById(type).innerHTML = rendered;
-
-      let storesDOM = document.getElementById(type).children;
-      for (let i = 0; i < storesDOM.length; i++) {
-        let id = storesDOM[i].id;
-        storesDOM[i].addEventListener('click', function () {
-          window.location.hash = "store/" + id;
-        }, false)
-      }
-
-    })
-  }
-}
-
-function renderErrorPage() {
-
-}
-
-
 function changeQuantityByInput(itemId, storeId, value, price) {
+  let unvalidated = value.split('');
+  value = '';
+  let input = document.querySelector('.quantity.id' + itemId);
+  for (let i = 0, vl = unvalidated.length; i < vl; i++) {
+    if (unvalidated[i] >= 0 && unvalidated[i] <= 9 && unvalidated[i] !== ' ') {
+      value += unvalidated[i];
+    }
+  }
+  input.value = value;
+  
+  if (value == '') {
+    value = 0;
+  }
 
-
-  if (value == '') value = 0;
-  //console.log(value);
   let obj = getItemAndStoreFromCart(itemId, storeId);
-  let storeNumber = obj.storeNumber;
-  let itemNumber = obj.itemNumber;
+  let storeNumber = obj.storeIndex;
+  let itemNumber = obj.itemIndex;
   if (storeNumber !== null && itemNumber !== null && value >= 0) {
-
-    //let quantityBefore = order.orderItems[storeNumber].items[itemNumber].quantity;
+    
     let sumItemsBefore = order.orderItems[storeNumber].items[itemNumber].sum;
-    //let sumBefore = order.sum;
     order.orderItems[storeNumber].items[itemNumber].quantity = value;
     order.orderItems[storeNumber].items[itemNumber].sum = value * price;
 
@@ -337,152 +338,113 @@ function incrementItemButton(itemId, storeId, price, name) {
 
 function incrementItem(itemId, storeId, price, name, noToast) {
   let result = getItemAndStoreFromCart(itemId, storeId);
-  let foundStoreNumber = result.storeNumber;
-  let foundItemNumber = result.itemNumber;
+  let storeIndex = result.storeIndex;
+  let itemIndex = result.itemIndex;
 
-
-  if (foundStoreNumber !== null && foundItemNumber !== null) {
-    order.orderItems[foundStoreNumber].items[foundItemNumber].quantity++;
-    order.orderItems[foundStoreNumber].items[foundItemNumber].sum = Number(order.orderItems[foundStoreNumber].items[foundItemNumber].sum) + Number(price);
-
-  }
-  else if (foundStoreNumber !== null) {
-    let object = {};
-    object.id = itemId;
-    object.name = name;
-    object.quantity = 1;
-    object.price = price;
-    object.sum = price;
-    order.orderItems[foundStoreNumber].items.push(object);
-  }
-  else {
-    let itemObject = {};
-    itemObject.id = itemId;
-    itemObject.name = name;
-    itemObject.quantity = 1;
-    itemObject.price = price;
-    itemObject.sum = price;
-
-    let storeObject = {};
-    xhr('GET', '/api/v1/stores', {_id: storeId}, function (statusCode, store) {
+  if (storeIndex === null) {
+    let store = {};
+    store.id = storeId;
+    store.items = [];
+    storeIndex  = order.orderItems.push(store) - 1;
+        
+    xhr('GET', '/api/v1/stores', {_id: storeId}, function (statusCode, storeResponse) {
       if (statusCode >= 400) {
         console.error(statusCode);
         return;
       }
-      storeObject.name = store.stores[0].name;
-      storeObject.image = store.stores[0].image;
+      order.orderItems[storeIndex].name = storeResponse.stores[0].name;
+      order.orderItems[storeIndex].image = storeResponse.stores[0].image;
+      order.orderItems[storeIndex].address = storeResponse.stores[0].address;
     })
-    storeObject.id = storeId;
-    storeObject.items = [];
-    storeObject.items.push(itemObject);
-    order.orderItems.push(storeObject);
-
   }
+  if (itemIndex === null) {
+    let item = {};
+    item.id = itemId;
+    item.name = name;
+    item.quantity = item.sum = 0;
+    item.price = price;
+    itemIndex = order.orderItems[storeIndex].items.push(item) - 1;
+  }
+  
+  order.orderItems[storeIndex].items[itemIndex].quantity++;
+  order.orderItems[storeIndex].items[itemIndex].sum += Number(price);
   order.sum += Number(price);
+
   if (document.querySelector('.total-sum') !== null) {
     document.querySelector('.total-sum').innerHTML = order.sum;
   }
 
   updateBadge();
-  if (!noToast)
+  if (!noToast) {
     /*Materialize.toast(name + ' +', 1000)*/
     Materialize.toast('Товар добавлен :)', 2000)
+  }
 }
 
 function removeFromCartButton(itemId, storeId, price) {
   let result = getItemAndStoreFromCart(itemId, storeId);
-  let foundStoreNumber = result.storeNumber;
-  let foundItemNumber = result.itemNumber;
-  order.sum -= Number(order.orderItems[foundStoreNumber].items[foundItemNumber].price) * Number(order.orderItems[foundStoreNumber].items[foundItemNumber].quantity);
+  let storeIndex = result.storeIndex;
+  let itemIndex = result.itemIndex;
+  order.sum -= order.orderItems[storeIndex].items[itemIndex].price * order.orderItems[storeIndex].items[itemIndex].quantity;
   document.querySelector('.total-sum').innerHTML = order.sum;
   updateBadge();
-  if (order.orderItems[foundStoreNumber].items.length > 1) {
-    order.orderItems[foundStoreNumber].items.splice(foundItemNumber, 1);
-    document.querySelector('.collection-item.id' + itemId + '.avatar.dismissable').outerHTML = '';
-  }
-  else {
-    order.orderItems.splice(foundStoreNumber, 1);
+  order.orderItems[storeIndex].items.splice(itemIndex, 1);
+  document.querySelector('.collection-item.id' + itemId + '.avatar.dismissable').outerHTML = '';
+  
+  if (order.orderItems[storeIndex].items.length == 0) {
+    order.orderItems.splice(storeIndex, 1);
     document.querySelector('.collection.with-header.id' + storeId).outerHTML = '';
   }
-
 }
 
 function decrementItemButton(itemId, storeId, price) {
-
   let quantityElement = document.querySelector('.quantity.id' + itemId);
   let quantity = Number(quantityElement.value);
   let sum = document.querySelector('.sum.id' + itemId);
-  if (quantity > 1) {
-    quantityElement.value = quantity - 1;
-    sum.innerHTML = Number(sum.innerHTML) - Number(price);
-  }
-  else {
-    document.querySelector('.collection-item.id' + itemId + '.avatar.dismissable').outerHTML = '';
-  }
+  quantityElement.value = quantity - 1;
+  sum.innerHTML = Number(sum.innerHTML) - Number(price);
   decrementItem(itemId, storeId, price);
 }
 
 function decrementItem(itemId, storeId, price) {
   let result = getItemAndStoreFromCart(itemId, storeId);
-  let foundStoreNumber = result.storeNumber;
-  let foundItemNumber = result.itemNumber;
+  let storeIndex = result.storeIndex;
+  let itemIndex = result.itemIndex;
 
+  order.orderItems[storeIndex].items[itemIndex].quantity--;
+  order.orderItems[storeIndex].items[itemIndex].sum -= Number(price);
+  order.sum -= Number(price);
 
-  if (foundStoreNumber !== null && foundItemNumber !== null) {
-    if (order.orderItems[foundStoreNumber].items[foundItemNumber].quantity > 1) {
-      order.orderItems[foundStoreNumber].items[foundItemNumber].quantity--;
-      order.orderItems[foundStoreNumber].items[foundItemNumber].sum = Number(order.orderItems[foundStoreNumber].items[foundItemNumber].quantity) * Number(order.orderItems[foundStoreNumber].items[foundItemNumber].price);
-      order.sum -= Number(price);
-      document.querySelector('.total-sum').innerHTML = order.sum;
-      updateBadge();
-    }
-    else if (order.orderItems[foundStoreNumber].items[foundItemNumber].quantity == 1) {
-
-      order.orderItems[foundStoreNumber].items[foundItemNumber].quantity--;
-      order.orderItems[foundStoreNumber].items[foundItemNumber].sum = Number(order.orderItems[foundStoreNumber].items[foundItemNumber].quantity) * Number(order.orderItems[foundStoreNumber].items[foundItemNumber].price);
-      order.sum -= Number(price);
-      document.querySelector('.total-sum').innerHTML = order.sum;
-      updateBadge();
-      if (order.orderItems[foundStoreNumber].items.length > 1)
-        order.orderItems[foundStoreNumber].items.splice(foundItemNumber, 1);
-      else {
-        order.orderItems.splice(foundStoreNumber, 1);
-        document.querySelector('.collection.with-header.id' + storeId).outerHTML = '';
-      }
-    }
-
-    else {
-      if (order.orderItems[foundStoreNumber].items.length > 1)
-        order.orderItems[foundStoreNumber].items.splice(foundItemNumber, 1);
-      else {
-        order.orderItems.splice(foundStoreNumber, 1);
-        document.querySelector('.collection.with-header.id' + storeId).outerHTML = '';
-      }
-    }
+  if (!order.orderItems[storeIndex].items[itemIndex].quantity) {
+    order.orderItems[storeIndex].items.splice(itemIndex, 1);
+    document.querySelector('.collection-item.id' + itemId + '.avatar.dismissable').outerHTML = '';
+    if (order.orderItems[storeIndex].items.length === 0) {
+      order.orderItems.splice(storeIndex, 1);
+      document.querySelector('.collection.with-header.id' + storeId).outerHTML = '';
+    }    
   }
+
+  updateBadge();
+  document.querySelector('.total-sum').innerHTML = order.sum;
 }
 
 function getItemAndStoreFromCart(itemId, storeId) {
-  let foundStore = false;
-  let foundStoreNumber = null;
-  let foundItemNumber = null;
-  let foundItem = false;
-  loop1:
-  for (let i = 0; i < order.orderItems.length; i++) {
+  let storeIndex = null;
+  let itemIndex = null;
+  
+  for (let i = 0, len = order.orderItems.length; i < len; i++) {
     if (order.orderItems[i].id == storeId) {
-      foundStore = true;
-      let foundStoreNumber = i;
-      for (let j = 0; j < order.orderItems[i].items.length; j++) {
+      storeIndex = i;
+      for (let j = 0, len2 = order.orderItems[i].items.length; j < len2; j++) {
         if (order.orderItems[i].items[j].id == itemId) {
-          foundItem = true;
-
-          foundItemNumber = j;
-          break loop1;
+          itemIndex = j;
+          break;
         }
       }
+      break;
     }
   }
-  return { storeNumber: foundStoreNumber, itemNumber: foundItemNumber };
+  return { storeIndex: storeIndex, itemIndex: itemIndex };
 }
 
 
@@ -688,6 +650,35 @@ function shoppingCartButton() {
     window.location.hash = '#cart';
   }
   else Materialize.toast('Корзина пуста', 2000);
+}
+
+function deliveryButton(orderId, status) {
+  if (status === 'preparing') {
+    xhr('PUT', '/api/v1/delivery/orders', {'id': orderId}, function (statusCode) {
+      if (statusCode === 403) {
+        console.error('forbidden');
+        return;
+      }
+      if (statusCode === 404) {
+        console.error('order not found');
+        return;
+      }
+      renderAccountPage();
+    })
+  }
+  if (status === 'delivering') {
+    xhr('PUT', '/api/v1/delivery/orders/complete',  {'id': orderId}, function (statusCode) {
+      if (statusCode === 403) {
+        console.error('forbidden');
+        return;
+      }
+      if (statusCode === 404) {
+        console.error('order not found');
+        return;
+      }
+      renderAccountPage();
+    })
+  }
 }
 
 function goBack() {
