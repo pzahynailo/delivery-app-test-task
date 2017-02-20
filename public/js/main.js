@@ -7,7 +7,6 @@ let currentCity;
 let authorized;
 let phoneRegExp = /^(?:\+?38)?0\d{9}$/;
 let emailRegExp = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-let settingsChanged = false;
 let order = {
   orderItems: [],
   sum: 0,
@@ -34,7 +33,6 @@ $(document).ready(function () {
    }
    );*/
   // $('.parallax').parallax();
-
   window.addEventListener('hashchange', function () {
     render(decodeURI(window.location.hash));
   });
@@ -89,8 +87,12 @@ function render(url) {
     },
     //Account Page
     '#account': function () {
-      if (authorized  == undefined) {
-        getSessionStatus(function (sessionStatus) {
+      if (authorized == undefined) {
+        xhr('GET', '/api/v1/session/status', {}, function (statusCode, sessionStatus) {
+          if (statusCode >= 400) {
+            console.error(statusCode);
+            return;
+          }
           authorized = sessionStatus.authorized;
           renderAccountPage();
         })
@@ -108,7 +110,7 @@ function render(url) {
 
 function renderTemplate(_pageselector, _template, _context, _target) {
   let template = document.querySelector(_template).innerHTML;
-  Handlebars.registerHelper("prettifyDate", function(timestamp) {
+  Handlebars.registerHelper("prettifyDate", function (timestamp) {
     return new Date(timestamp).toLocaleString()
   });
   let compiledTemplate = Handlebars.compile(template);
@@ -120,43 +122,36 @@ function renderTemplate(_pageselector, _template, _context, _target) {
   }
 }
 
+
+
+
 function renderAccountPage() {
-  if(authorized){
-    getOrders(function(orders) {      
-      if (orders.orders.length !== 0){
+  if (authorized) {
+    xhr('GET', '/api/v1/orders', {}, function (statusCode, orders) {
+      if (statusCode >= 400) {
+        window.location.hash = '#';
+        $('#loginModal').modal('open');
+        console.error(statusCode);
+        return;
+      }
+      if (orders.orders.length !== 0) {
         renderTemplate('.account.page', '#userOrdersTemplate', orders, '#userOrders');
-        $(document).ready(function(){
+        $(document).ready(function () {
           $('.collapsible').collapsible();
         });
       }
       else {
-        document.querySelector('.account.page').classList.add('visible');
+        renderTemplate('.account.page', '#emptyOrdersTemplate', {}, '#userOrders');
       }
-      let street = document.querySelector('#changedStreet');
-      let house = document.querySelector('#changedHouse');
-      let name = document.querySelector('#changedName');
-      let phone = document.querySelector('#changedPhoneNumber');
-      if (name.value == '' && phone.value == ''){
-          getUser(function(user) {
-            name.value = user.name;
-            phone.value = user.phone;
-            if (user.street) {
-              street.value = user.street;
-            }
-            if (user.house) {
-              house.value = user.house;
-            }
-            Materialize.updateTextFields();
-          })
-        }
       $('.account.page ul.tabs').tabs();
     })
+
   }
   else {
     window.location.hash = '#';
     $('#loginModal').modal('open');
   }
-  
+
 }
 
 function renderDeliveryPage() {
@@ -167,23 +162,26 @@ function renderRegisterPage() {
 }
 function renderInitialPage() {
   if (Object.keys(storesItems).length === 0 && storesItems.constructor === Object) {
-    getStoretypes(currentCity, function (storetypes) {
+    xhr('GET', '/api/v1/storetypes', {cityId: currentCity}, function (statusCode, storetypes) {
+      if (statusCode >= 400) {
+        console.error(statusCode);
+        return;
+      }
       renderTemplate(null, '#storetypelist-template', storetypes, '#navHorizontal-allstores');
-      
       let lis = document.querySelectorAll('#navHorizontal-allstores li');
       for (let i = 0, ll = lis.length; i < ll; i++) {
         lis[i].addEventListener('click', function () {
-          renderStoresOfType(currentCity, storetypes.storetypes[i]._id);        
+          renderStoresOfType(currentCity, storetypes.storetypes[i]._id);
         }, false)
       }
       renderTemplate(null, '#storelistUL-template', storetypes, '#store-list');
 
       $('ul.tabs').tabs();
       $('ul.tabs').tabs('select_tab', storetypes.storetypes[0]._id);
-      
-        /*$('ul.tabs').tabs({
-        swipeable: true
-      })*/
+
+      /*$('ul.tabs').tabs({
+      swipeable: true
+    })*/
       document.getElementById('tab' + storetypes.storetypes[0]._id).dispatchEvent(new Event('click'));
     })
   }
@@ -194,42 +192,50 @@ function renderInitialPage() {
   document.querySelector('.all-stores.page').classList.add('visible');
 }
 
+function updateUserInfo() {
+  xhr('GET', '/api/v1/users', {}, function (statusCode, user) {
+    if (statusCode >= 400) {
+      console.error(statusCode);
+      return;
+    }
+    let streetSettings = document.querySelector('#changedStreet');
+    let houseSettings = document.querySelector('#changedHouse');
+    let nameSettings = document.querySelector('#changedName');
+    let phoneSettings = document.querySelector('#changedPhoneNumber');
 
+    let nameCart = document.querySelector('#name');
+    let phoneCart = document.querySelector('#phone_number');
+    let streetCart = document.querySelector('#street');
+    let houseCart = document.querySelector('#house');
+
+    nameCart.value = nameSettings.value = user.name;
+    phoneCart.value = phoneSettings.value = user.phone;
+    streetCart.value = streetSettings.value = !user.street ? '' : user.street;
+    houseCart.value = houseSettings = !user.house ? '' : user.house;
+
+    Materialize.updateTextFields();
+  })
+}
 
 function renderCartPage() {
-    renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
-    if (authorized) {
-      let name = document.querySelector('#name');
-      let phone = document.querySelector('#phone_number');
-      
-      if ((name.value == '' && phone.value == '')|| settingsChanged){
-        getUser(function(user) {
-          let street = document.querySelector('#street');
-          let house = document.querySelector('#house');
-          
-          name.value = user.name;
-          phone.value = user.phone;
-          if (user.street)
-            street.value = user.street;
-          if (user.house)
-            house.value = user.house;
-          Materialize.updateTextFields();
-          settingsChanged = false;
-        })
-      }
-      
-    }
+  renderTemplate('.shopping-cart.page', '#shopping-cart-template', order, '#shopping-cart-list');
 }
 
 function renderStorePage(storeId) {
   let page = document.querySelector('.single-store.page');
-  getItems(storeId, function (items) {
+  xhr('GET', '/api/v1/items', {'storeId': storeId}, function (statusCode, items) {
+    if (statusCode >= 400) {
+      console.error(statusCode);
+      return;
+    }
     renderTemplate('.single-store.page', '#single-store-template', items, '#single-store-row');
-
   })
-  getStore(storeId, function (store) {
+  xhr('GET', '/api/v1/stores', {_id: storeId}, function (statusCode, store) {
+    if (statusCode >= 400) {
+      console.error(statusCode);
+      return;
+    }
     renderTemplate(null, '#storename-template', store.stores[0], '.brand-logo.center.storename');
-
   })
   let htmlEl = document.getElementsByTagName('html')[0];
 
@@ -255,7 +261,12 @@ function renderStoresOfType(currentCity, type) {
     }
   }
   else {
-    getStores(currentCity, type, function (stores) {
+    
+    xhr('GET', '/api/v1/stores', {cityId: currentCity, typeId: type},  function (statusCode, stores) {
+      if (statusCode >= 400) {
+        console.error(statusCode);
+        return;
+      }
       storesItems[type] = stores;
       let template = document.getElementById("storelist-template").innerHTML;
       let compiledTemplate = Handlebars.compile(template);
@@ -303,8 +314,7 @@ function changeQuantityByInput(itemId, storeId, value, price) {
     //let input = document.querySelector('.quantity.id' + itemId);
     let sum = document.querySelector('.sum.id' + itemId);
     sum.innerHTML = order.orderItems[storeNumber].items[itemNumber].sum;
-    let badge = document.querySelector('.badge');
-    badge.innerHTML = '₴' + order.sum;
+    updateBadge();
 
 
   }
@@ -354,7 +364,11 @@ function incrementItem(itemId, storeId, price, name, noToast) {
     itemObject.sum = price;
 
     let storeObject = {};
-    getStore(storeId, function (store) {
+    xhr('GET', '/api/v1/stores', {_id: storeId}, function (statusCode, store) {
+      if (statusCode >= 400) {
+        console.error(statusCode);
+        return;
+      }
       storeObject.name = store.stores[0].name;
       storeObject.image = store.stores[0].image;
     })
@@ -369,27 +383,19 @@ function incrementItem(itemId, storeId, price, name, noToast) {
     document.querySelector('.total-sum').innerHTML = order.sum;
   }
 
-  let badge = document.querySelector('.badge');
-  if (badge.style.display == 'none') {
-    badge.style.display = 'block';
-  }
-  badge.innerHTML = '₴' + order.sum;
+  updateBadge();
   if (!noToast)
     /*Materialize.toast(name + ' +', 1000)*/
     Materialize.toast('Товар добавлен :)', 2000)
 }
 
 function removeFromCartButton(itemId, storeId, price) {
-  let badge = document.querySelector('.badge');
   let result = getItemAndStoreFromCart(itemId, storeId);
   let foundStoreNumber = result.storeNumber;
   let foundItemNumber = result.itemNumber;
   order.sum -= Number(order.orderItems[foundStoreNumber].items[foundItemNumber].price) * Number(order.orderItems[foundStoreNumber].items[foundItemNumber].quantity);
   document.querySelector('.total-sum').innerHTML = order.sum;
-  if (order.sum == 0) {
-    badge.style.display = 'none';
-  }
-  badge.innerHTML = '₴' + order.sum;
+  updateBadge();
   if (order.orderItems[foundStoreNumber].items.length > 1) {
     order.orderItems[foundStoreNumber].items.splice(foundItemNumber, 1);
     document.querySelector('.collection-item.id' + itemId + '.avatar.dismissable').outerHTML = '';
@@ -421,7 +427,6 @@ function decrementItem(itemId, storeId, price) {
   let foundStoreNumber = result.storeNumber;
   let foundItemNumber = result.itemNumber;
 
-  let badge = document.querySelector('.badge');
 
   if (foundStoreNumber !== null && foundItemNumber !== null) {
     if (order.orderItems[foundStoreNumber].items[foundItemNumber].quantity > 1) {
@@ -429,10 +434,7 @@ function decrementItem(itemId, storeId, price) {
       order.orderItems[foundStoreNumber].items[foundItemNumber].sum = Number(order.orderItems[foundStoreNumber].items[foundItemNumber].quantity) * Number(order.orderItems[foundStoreNumber].items[foundItemNumber].price);
       order.sum -= Number(price);
       document.querySelector('.total-sum').innerHTML = order.sum;
-      if (order.sum == 0) {
-        badge.style.display = 'none';
-      }
-      badge.innerHTML = '₴' + order.sum;
+      updateBadge();
     }
     else if (order.orderItems[foundStoreNumber].items[foundItemNumber].quantity == 1) {
 
@@ -440,10 +442,7 @@ function decrementItem(itemId, storeId, price) {
       order.orderItems[foundStoreNumber].items[foundItemNumber].sum = Number(order.orderItems[foundStoreNumber].items[foundItemNumber].quantity) * Number(order.orderItems[foundStoreNumber].items[foundItemNumber].price);
       order.sum -= Number(price);
       document.querySelector('.total-sum').innerHTML = order.sum;
-      if (order.sum == 0) {
-        badge.style.display = 'none';
-      }
-      badge.innerHTML = '₴' + order.sum;
+      updateBadge();
       if (order.orderItems[foundStoreNumber].items.length > 1)
         order.orderItems[foundStoreNumber].items.splice(foundItemNumber, 1);
       else {
@@ -488,119 +487,10 @@ function getItemAndStoreFromCart(itemId, storeId) {
 
 
 function encodeQuery(params) {
-   let ret = [];
-   for (let p in params)
-     ret.push(encodeURIComponent(p) + '=' + encodeURIComponent(params[p]));
-   return ret.join('&');
-}
-
-/*TODO*/
-function xhrGet(path, params, callback) {
-  let path = path + '?' + encodeQuery(params);
-  let xhr = new XMLHttpRequest();
-  xhr.open('GET', root + path, true);
-  xhr.onload = function () {
-    if (xhr.status == 200) {
-      callback(null, JSON.parse(xhr.responseText));
-    }
-    else {
-      callback(xhr.status);
-    }
-  }
-  xhr.send(); 
-}
-
-
-/*get logged user*/
-function getUser (callback) {
-  let xhr = new XMLHttpRequest();
-  xhr.open('GET', root + '/api/v1/users', true);
-  xhr.onload = function () {
-    if(xhr.status == 200) {
-      callback(JSON.parse(xhr.responseText));
-    }
-  }
-  xhr.send();
-}
-
-/*get items by store*/
-let getItems = function (store, callback) {
-  let xhr = new XMLHttpRequest();
-  if (store !== undefined)
-    xhr.open('get', root + '/api/v1/items?storeId=' + store, true);
-  else
-    xhr.open('get', root + '/api/v1/items', true);
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      callback(JSON.parse(xhr.responseText));
-    }
-  }
-  xhr.send()
-}
-
-
-/*get stores by city and/or type*/
-function getStores(city, type, callback) {
-  let xhr = new XMLHttpRequest();
-  if (city !== undefined && type == undefined)
-    xhr.open('GET', root + '/api/v1/stores/?cityId=' + city, true);
-  else if (city !== undefined && type !== undefined) {
-    xhr.open('GET', root + '/api/v1/stores/?cityId=' + city + '&typeId=' + type, true);
-  }
-  else xhr.open('GET', root + '/api/v1/stores/', true);
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      callback(JSON.parse(xhr.responseText));
-    }
-  }
-  xhr.send();
-}
-
-/*get store by id*/
-function getStore(id, callback) {
-  let xhr = new XMLHttpRequest();
-  xhr.open('GET', root + '/api/v1/stores/?_id=' + id, true);
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      callback(JSON.parse(xhr.responseText));
-    }
-  }
-  xhr.send()
-}
-
-function getStoretypes(city, callback) {
-  let xhr = new XMLHttpRequest();
-  if (city !== undefined)
-    xhr.open('GET', root + '/api/v1/storetypes/?cityId=' + city, true);
-  else xhr.open('GET', root + '/api/v1/storetypes/', true);
-  let context;
-  xhr.onload = function () {
-    if (xhr.status == 200) {
-      callback(JSON.parse(xhr.responseText))
-    }
-  }
-  xhr.send()
-}
-
-function getOrders(callback) {
-  let xhr = new XMLHttpRequest();
-  xhr.open('GET', root + '/api/v1/orders', true);
-  xhr.onload = function () {
-    if (xhr.status == 200) {
-      callback(JSON.parse(xhr.responseText));
-    }
-  }
-  xhr.send();
-}
-function getSessionStatus(callback) {
-  let xhr = new XMLHttpRequest;
-  xhr.open('GET', root + '/api/v1/session/status');
-  xhr.onload = function() {
-    if (xhr.status == 200) {
-      callback(JSON.parse(xhr.responseText));
-    }
-  }
-  xhr.send()
+  let ret = [];
+  for (let p in params)
+    ret.push(encodeURIComponent(p) + '=' + encodeURIComponent(params[p]));
+  return ret.join('&');
 }
 
 function formToObject(form) {
@@ -624,28 +514,20 @@ function submitRegistrationForm() {
     house: customerInfo.regHouse,
     phoneNumber: customerInfo.regPhoneNumber
   }
-  console.log(customerInfo);
   if (validateRegistrationForm(customerInfo)) {
-    console.log('aaa')
     customerInfo.cityId = currentCity;
-    let xhr = new XMLHttpRequest();
-    xhr.open('POST', root + '/api/v1/users', true);
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    xhr.send(JSON.stringify(customerInfo));
-    xhr.onloadend = function () {
-      if(xhr.status == 200) {
-        authorize();
-        window.location.hash = 'account';
-        $('#registeredModal').modal('open');
-      }
-      if(xhr.status == 400) {
-        console.log(xhr.status)
-        let error = JSON.parse(xhr.responseText);
+    xhr('POST', '/api/v1/users', customerInfo, function(statusCode, error) {
+      if (statusCode >= 400) {
         if (error.reason == 'duplicate' && error.fields[0] == 'email') {
           Materialize.toast('Email занят', 3000);
         }
+        console.error(statusCode);
+        return;
       }
-    }
+      authorize();
+      window.location.hash = 'account';
+      $('registeredModal').modal('open');
+    })
   }
 }
 
@@ -665,30 +547,56 @@ function validateOrderForm(customerInfo) {
   return valid;
 }
 
+function isJSON (data) {
+  try {
+    JSON.parse(data);
+  }
+  catch(e) {
+    return false;
+  }
+  return true;
+}
+
+function xhr(method, path, params, callback) {
+  let xhr = new XMLHttpRequest();
+  xhr.open(method, root + path + (method == 'GET' ? '?' + encodeQuery(params): ''), true);
+  if (method == 'POST' || method == 'PUT') {
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+  }
+  xhr.onload = function () {
+    callback(xhr.status, isJSON(xhr.responseText) ? JSON.parse(xhr.responseText) : {});
+  }
+  xhr.send(method == 'POST' || method == 'PUT' ? JSON.stringify(params) : null);
+}
+
+function clearCart() {
+  order = {
+    orderItems: [],
+    sum: 0,
+    customerInfo: {}
+  }
+}
+function updateBadge() {
+  let badge = document.querySelector('.badge');
+  badge.innerHTML = '₴' + order.sum;
+  badge.style.display = order.sum ? 'block' : 'none';
+}
+
 function submitOrderForm() {
   let customerInfo = formToObject('form.order');
   if (validateOrderForm(customerInfo)) {
     order.customerInfo = customerInfo;
-    let xhr = new XMLHttpRequest();
-    xhr.open('POST', root + '/api/v1/orders', true);
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    xhr.send(JSON.stringify(order));
-    xhr.onloadend = function () {
-      order = {
-        orderItems: [],
-        sum: 0,
-        customerInfo: {}
+    xhr('POST', '/api/v1/orders', order, function(statusCode) {
+      if (statusCode >= 400) {
+        console.error(statusCode);
+        return;
       }
-      let badge = document.querySelector('.badge');
-      badge.innerHTML = '₴' + order.sum;
-      badge.style.display = 'none';
+      clearCart();
+      updateBadge();
       window.location.hash = '#';
       $('#orderedModal').modal('open');
-
-
-    }
+    })
   }
-
 }
 
 function validateLoginForm(loginInfo) {
@@ -702,26 +610,14 @@ function validateLoginForm(loginInfo) {
 function submitLoginForm() {
   let loginInfo = formToObject('form.login');
   if (validateLoginForm(loginInfo)) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('POST', root + '/api/v1/session', true);
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    xhr.send(JSON.stringify(loginInfo));
-    xhr.onload = function () {
-      if (xhr.readyState == XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          $('#loginModal').modal('close');
-          authorize();
-          window.location.hash = 'account';
-        }
-        else if (xhr.status === 400) {
-          alert('Неправильный email или пароль');
-        }
-
+    xhr('POST', '/api/v1/session', loginInfo, function(statusCode) {
+      if (statusCode >= 400) {
+        alert('Неправильный email или пароль');
+        return;
       }
-    }
+      authorize();     
+    })
   }
-
-  console.log(loginInfo)
 }
 
 function submitSettingsForm() {
@@ -732,40 +628,39 @@ function submitSettingsForm() {
     street: settings.changedStreet,
     house: settings.changedHouse
   }
-  let xhr = new XMLHttpRequest();
-  xhr.open('PUT', root + '/api/v1/users', true);
-  xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-  xhr.send(JSON.stringify(settings));
-  xhr.onload = function () {
-    if (xhr.readyState == XMLHttpRequest.DONE) {
-      if (xhr.status === 200) {
-        settingsChanged = true;
-        Materialize.toast('Сохранено', 2000);
-        }
-      else if (xhr.status === 400) {
-        Materialize.toast('Неправильный номер телефона');
-      }
+  xhr('PUT', '/api/v1/users', settings, function(statusCode) {
+    if (statusCode >= 400) {
+      Materialize.toast('Неправильный номер телефона');
+      return;
     }
-  }
+    updateUserInfo();
+    Materialize.toast('Сохранено', 2000);
+  })
 }
 
 
-
-
-
 function isAuthorized() {
-  
-  getSessionStatus(function (sessionStatus) {
+  xhr('GET', '/api/v1/session/status', {}, function (statusCode, sessionStatus) {
+    if (statusCode >= 400) {
+      console.error(statusCode);
+      return;
+    }
     authorized = sessionStatus.authorized;
+    if (authorized) {
+      updateUserInfo();
+    }
   })
 }
 
 
 
 function authorize() {
+  $('#loginModal').modal('close');
   authorized = true;
-  settingsChanged = true;
+
+  updateUserInfo();
   setCookie('authorized', true, 999);
+  window.location.hash = 'account';
 }
 
 function accountButton() {
@@ -777,16 +672,15 @@ function accountButton() {
   }
 }
 function logOutButton() {
-  let xhr = new XMLHttpRequest();
-  xhr.open('DELETE', root + '/api/v1/session');
-  xhr.onload = function() {
-    if (xhr.status == 200) {
-      authorized = false;
-      setCookie('authorized', false, 999);
-      window.location.hash = '#';
+  xhr('DELETE', '/api/v1/session', {}, function(statusCode) {
+    if (statusCode >= 400) {
+      console.error(statusCode);
+      return;
     }
-  }
-  xhr.send();
+    authorized = false;
+    setCookie('authorized', false, 999);
+    window.location.hash = '#';
+  })
 }
 
 function shoppingCartButton() {

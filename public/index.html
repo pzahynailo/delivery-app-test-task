@@ -499,7 +499,7 @@
 
 			<main>
 				<div id="userOrders">
-					<div class='ordersEmpty'>Список пока пуст. <a onclick='renderInitialPage()'>Начать заказывать</a></div>				
+					
 				</div>
 				<div id="userSettings">
 					<div class='settings-form container row z-depth-2'>
@@ -541,6 +541,9 @@
 					</div>
 				</div>
 			</main>
+			<script id='emptyOrdersTemplate' type="text/x-handlebars-template">
+				<div class='ordersEmpty'>Список пока пуст. <a onclick='renderInitialPage()'>Начать заказывать</a></div>
+			</script>
 			<script id='userOrdersTemplate' type="text/x-handlebars-template">
 					<ul class="collapsible popout"  data-collapsible="expandable">
 						{{#each orders}}
