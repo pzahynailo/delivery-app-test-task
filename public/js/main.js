@@ -123,7 +123,7 @@ function render(url) {
 function renderTemplate(_pageselector, _template, _context, _target) {
   let template = document.getElementById(_template).innerHTML;
   Handlebars.registerHelper("prettifyDate", function (timestamp) {
-    return new Date(timestamp).toLocaleString()
+    return new Date(timestamp).toLocaleString('ru-RU');
   });
   let compiledTemplate = Handlebars.compile(template);
   let rendered = compiledTemplate(_context);

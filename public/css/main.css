@@ -115,7 +115,12 @@ ul.collection li.collection-item {
 .navbar-fixed.single-store {
     z-index: 102;
 }
-
+.single-store .activator {
+    color: #039be5;
+}
+.card .card-content p {
+    color: rgba(0, 0, 0, 0.6);
+}
 .brand-logo.center {
     color: #0097a7;
     font-weight: bold;
@@ -294,10 +299,14 @@ ul.collection li.collection-item {
 }
 .orderStatus {
     text-align: center; 
+    color: rgba(0, 0, 0, 0.6);
 }
 .ordersEmpty {
     padding-left: 20px;
     padding-top: 20px;
+}
+.operatorConfirmButton {
+    margin-bottom: 10px;
 }
 .operatorCancelButton {
     background-color: #FF5722;

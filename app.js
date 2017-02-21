@@ -1,7 +1,7 @@
 let express = require('express');
 let session = require('express-session');
 
-let port = 3001;
+let port = 3002;
 let app = express();
 let favicon = require('serve-favicon');
 let api = require('./api');

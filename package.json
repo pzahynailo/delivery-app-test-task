@@ -18,6 +18,7 @@
     "serve-favicon": "^2.3.2"
   },
   "devDependencies": {
+    "express": "^4.14.0",
     "babel-cli": "^6.23.0",
     "babel-plugin-uglify": "^1.0.2"
   },
