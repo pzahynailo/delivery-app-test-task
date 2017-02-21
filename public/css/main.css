@@ -2,7 +2,7 @@
     z-index: 100;
     margin-bottom: 60px;
 }
-#navHorizontal-allstores::-webkit-scrollbar, #navHorizontal-account::-webkit-scrollbar {
+.navHorizontal::-webkit-scrollbar, #navHorizontal-account::-webkit-scrollbar {
     display: none;
    
 }
@@ -188,7 +188,7 @@ ul.collection li.collection-item {
     display: block;
 }
 .item.title {
-    margin-right: 35px;
+    margin-right: 43px;
 }
 .address {
     color: rgba(0,0,0,0.6);
@@ -254,6 +254,28 @@ ul.collection li.collection-item {
     display: block;
 }
 
+@media (min-width: 0px) and (max-width: 261px) {
+    .account main {
+        font-size: 11px;
+    }
+}
+@media (min-width: 262px) and (max-width: 283px) {
+    .account main {
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 284px) and (max-width: 299px) {
+    .account main {
+        font-size: 13px;
+    }
+}
+@media (min-width: 300px) {
+    .account main {
+        font-size: 14px;
+    }
+}
+
 .account .secondary-content {
     top: -20px;
     position: relative;
@@ -276,6 +298,9 @@ ul.collection li.collection-item {
 .ordersEmpty {
     padding-left: 20px;
     padding-top: 20px;
+}
+.operatorCancelButton {
+    background-color: #FF5722;
 }
 .collapsible-body .collection.with-header .collection-header {
     background-color: white;
@@ -304,7 +329,17 @@ ul.collection li.collection-item {
     text-align: center;
 }   
 
+#deliveryOrders .delivering {
+    background-color: #CBF0E9;
+}
+#operatorOrders .processing {
+    background-color: #CBF0E9;
+}
+
 #deliveryTab {
+    display:none;
+}
+#operatorTab {
     display:none;
 }
 
@@ -382,11 +417,11 @@ ul.collection li.collection-item {
     display: none;
 }
 @media (max-width: 475px) {
-    #navHorizontal-allstores{
+    .navHorizontal{
         -webkit-box-shadow: inset -40px 0px 61px -36px rgba(0,0,0,0.75);
         -moz-box-shadow: inset -40px 0px 61px -36px rgba(0,0,0,0.75);
         box-shadow: inset -40px 0px 61px -36px rgba(0,0,0,0.75);
-}    
+    }    
 }
 .tabs.tabs-transparent.tabs-fixed-width {
     background-color: rgba(0,96,100,0.5)!important;

@@ -26,7 +26,7 @@ router.use((req, res, next) => {
 router.use('/:version', (req, res, next) => {
     if (req.params.version !== 'v1') {
         res.status(400);
-        res.json({"error": "Unsupported API version, please check the documentation"});
+        res.json({ "error": "Unsupported API version, please check the documentation" });
         res.end();
     }
     else {
@@ -53,7 +53,7 @@ function mongify(object, properties) {
     return mongified;
 }
 
-function calcHash (password, salt, type = 'sha256') {
+function calcHash(password, salt, type = 'sha256') {
     const hash = crypto.createHash(type);
     hash.update(password)
         .update(salt);
@@ -68,8 +68,8 @@ function genSalt(length = 6) {
 router.get('/:version/storetypes', (req, res) => {
     db.get('stores').find(mongify(req.query, ['cityId'])).then((stores) => {
         let typeIds = Array.from(new Set(stores.map(store => store.typeId)))  //array of unique types existing for this city
-        db.get('storetypes').find({_id: {$in: typeIds}}).then((storetypes) => {
-            res.json({storetypes: storetypes});
+        db.get('storetypes').find({ _id: { $in: typeIds } }).then((storetypes) => {
+            res.json({ storetypes: storetypes });
             res.end();
         });
     });
@@ -78,7 +78,7 @@ router.get('/:version/storetypes', (req, res) => {
 /*get stores/ stores by city/id*/
 router.get('/:version/stores', (req, res) => {
     db.get('stores').find(mongify(req.query, ['_id', 'cityId', 'typeId'])).then(stores => {
-        res.json({stores: stores});
+        res.json({ stores: stores });
         res.end();
     });
 })
@@ -86,7 +86,7 @@ router.get('/:version/stores', (req, res) => {
 /*get items by store*/
 router.get('/:version/items', (req, res) => {
     db.get('items').find(mongify(req.query, ['storeId'])).then((items) => {
-        res.json({items: items});
+        res.json({ items: items });
         res.end();
     });
 })
@@ -94,22 +94,106 @@ router.get('/:version/items', (req, res) => {
 /*get cities*/
 router.get('/:version/cities', (req, res) => {
     db.get('cities').find(mongify(req.query, ['cityId'])).then((cities) => {
-        res.json({cities: cities});
+        res.json({ cities: cities });
         res.end();
     });
 })
 /*processing, preparing, delivering, cancelled, completed*/
 
 
-router.get('/:version/delivery/orders', (req, res) => {
-    
+router.get('/:version/operator/orders', (req, res) => {
     if (req.session.user !== undefined) {
-        console.log(req.session.user);
-        db.get('users').findOne({'_id': monk.id(req.session.user.id)}).then(user => {
-            db.get('roles').findOne({'_id': user.roleId}).then(role => {
+        db.get('users').findOne({ '_id': monk.id(req.session.user.id) }).then(user => {
+            db.get('roles').findOne({ '_id': user.roleId }).then(role => {
+                if (role.permissions.includes('operator')) {
+                    db.get('orders').find({ 'status': { $nin: ['cancelled', 'completed'] } }, { sort: { 'createdAt': -1 } }).then(orders => {
+                        res.json({ orders: orders });
+                        res.end();
+                    })
+                }
+                else {
+                    res.sendStatus(403);
+                }
+            })
+        })
+    }
+    else {
+        res.sendStatus(403);
+    }
+})
+
+router.put('/:version/operator/orders', (req, res) => {
+    if (req.session.user !== undefined) {
+        db.get('users').findOne({ '_id': monk.id(req.session.user.id) }).then(user => {
+            db.get('roles').findOne({ '_id': user.roleId }).then(role => {
+                if (role.permissions.includes('operator')) {
+                    db.get('orders').findOne({ '_id': monk.id(req.body.id) }).then(order => {
+                        if (order !== null) {
+                            if (order.status == 'processing') {
+                                db.get('orders').update({ '_id': monk.id(req.body.id) }, { $set: {'status': 'preparing'} }).then(() => {
+                                    res.sendStatus(200);
+                                })
+                            }
+                            else {
+                                res.sendStatus(403);
+                            }
+                        }
+                        else {
+                            res.sendStatus(404);
+                        }
+                    })
+                }
+                else {
+                    res.sendStatus(403);
+                }
+            })
+        })
+    }
+    else {
+        res.sendStatus(403);
+    }
+})
+
+router.put('/:version/operator/cancel', (req, res) => {
+    if (req.session.user !== undefined) {
+        db.get('users').findOne({ '_id': monk.id(req.session.user.id) }).then(user => {
+            db.get('roles').findOne({ '_id': user.roleId }).then(role => {
+                if (role.permissions.includes('operator')) {
+                    db.get('orders').findOne({ '_id': monk.id(req.body.id) }).then(order => {
+                        if (order !== null) {
+                            if (order.status !== 'completed' && order.status !== 'cancelled') {
+                                db.get('orders').update({ '_id': monk.id(req.body.id) }, { $set: {'status': 'cancelled'} }).then(() => {
+                                    res.sendStatus(200);
+                                })
+                            }
+                            else {
+                                res.sendStatus(403);
+                            }
+                        }
+                        else {
+                            res.sendStatus(404);
+                        }
+                    })
+                }
+                else {
+                    res.sendStatus(403);
+                }
+            })
+        })
+    }
+    else {
+        res.sendStatus(403);
+    }
+})
+
+router.get('/:version/delivery/orders', (req, res) => {
+
+    if (req.session.user !== undefined) {
+        db.get('users').findOne({ '_id': monk.id(req.session.user.id) }).then(user => {
+            db.get('roles').findOne({ '_id': user.roleId }).then(role => {
                 if (role.permissions.includes('delivery')) {
-                    db.get('orders').find({$or: [{'status': 'preparing'}, {'status': 'delivering', 'deliverymanId': monk.id(req.session.user.id)}]}, {sort: {'createdAt': -1}}).then(orders => {
-                        res.json({orders: orders});
+                    db.get('orders').find({ $or: [{ 'status': 'preparing' }, { 'status': 'delivering', 'deliverymanId': monk.id(req.session.user.id) }] }, { sort: { 'createdAt': -1 } }).then(orders => {
+                        res.json({ orders: orders });
                         res.end();
                     })
                 }
@@ -125,22 +209,20 @@ router.get('/:version/delivery/orders', (req, res) => {
 })
 
 router.put('/:version/delivery/orders', (req, res) => {
-    
+
     if (req.session.user !== undefined) {
-        console.log(req.session.user)    
-        db.get('users').findOne({'_id': monk.id(req.session.user.id)}).then(user => {
-            db.get('roles').findOne({'_id': user.roleId}).then(role => {
+        db.get('users').findOne({ '_id': monk.id(req.session.user.id) }).then(user => {
+            db.get('roles').findOne({ '_id': user.roleId }).then(role => {
                 if (role.permissions.includes('delivery')) {
-                    db.get('orders').findOne({'_id': monk.id(req.body.id)}, {sort: {'createdAt': -1}}).then(order => {
+                    db.get('orders').findOne({ '_id': monk.id(req.body.id) }).then(order => {
                         if (order !== null) {
-                            console.log(order);
                             if (order.status == 'preparing') {
-                                db.get('orders').update({'_id': monk.id(req.body.id)}, {$set: {'status': 'delivering', 'deliverymanId': monk.id(req.session.user.id)}}).then(() => {
+                                db.get('orders').update({ '_id': monk.id(req.body.id) }, { $set: { 'status': 'delivering', 'deliverymanId': monk.id(req.session.user.id) } }).then(() => {
                                     res.sendStatus(200);
                                 })
                             }
                             else {
-                                
+
                                 res.sendStatus(403);
                             }
                         }
@@ -162,13 +244,13 @@ router.put('/:version/delivery/orders', (req, res) => {
 
 router.put('/:version/delivery/orders/complete', (req, res) => {
     if (req.session.user !== undefined) {
-        db.get('users').findOne({'_id': monk.id(req.session.user.id)}).then(user => {
-            db.get('roles').findOne({'_id': user.roleId}).then(role => {
+        db.get('users').findOne({ '_id': monk.id(req.session.user.id) }).then(user => {
+            db.get('roles').findOne({ '_id': user.roleId }).then(role => {
                 if (role.permissions.includes('delivery')) {
-                    db.get('orders').findOne({'_id': monk.id(req.body.id)}, {sort: {'createdAt': -1}}).then(order => {
+                    db.get('orders').findOne({ '_id': monk.id(req.body.id) }).then(order => {
                         if (order !== null) {
                             if (order.status == 'delivering' && order.deliverymanId == req.session.user.id) {
-                                db.get('orders').update({'_id': monk.id(req.body.id)}, {$set: {'status': 'completed', 'completedAt': new Date()}}).then( ()=>{
+                                db.get('orders').update({ '_id': monk.id(req.body.id) }, { $set: { 'status': 'completed', 'completedAt': new Date() } }).then(() => {
                                     res.sendStatus(200);
                                 })
                             }
@@ -194,8 +276,8 @@ router.put('/:version/delivery/orders/complete', (req, res) => {
 
 /*get orders of user*/
 router.get('/:version/orders', (req, res) => {
-    db.get('orders').find({'customerInfo.userId': monk.id(req.session.user.id)}, {sort: {'createdAt': -1}}).then((orders) => {
-        res.json({orders: orders});
+    db.get('orders').find({ 'customerInfo.userId': monk.id(req.session.user.id) }, { sort: { 'createdAt': -1 } }).then((orders) => {
+        res.json({ orders: orders });
         res.end();
     })
 })
@@ -203,11 +285,11 @@ router.get('/:version/orders', (req, res) => {
 /*add new order*/
 router.post('/:version/orders', (req, res) => {
     let order = req.body;
-    if (    order.sum <= 0 || 
-            order.customerInfo.name === '' || 
-            order.customerInfo.street === '' || 
-            order.customerInfo.house === '' || 
-            !phoneRegExp.test(order.customerInfo.phone_number)) {
+    if (order.sum <= 0 ||
+        order.customerInfo.name === '' ||
+        order.customerInfo.street === '' ||
+        order.customerInfo.house === '' ||
+        !phoneRegExp.test(order.customerInfo.phone_number)) {
         return res.sendStatus(400);
     }
     if (req.session.user) {
@@ -220,8 +302,8 @@ router.post('/:version/orders', (req, res) => {
 })
 
 /**/
-router.get('/:version/users', (req,res) => {
-    db.get('users').findOne({_id: monk.id(req.session.user.id)}).then((user) => {
+router.get('/:version/users', (req, res) => {
+    db.get('users').findOne({ _id: monk.id(req.session.user.id) }).then((user) => {
         res.json(user);
         res.end();
     })
@@ -236,7 +318,7 @@ router.post('/:version/users', (req, res) => {
     };
     for (var property in user) {
         if (user.hasOwnProperty(property)) {
-            if (property != 'phoneNumber'  && user.property === '') {
+            if (property != 'phoneNumber' && user.property === '') {
                 errorResponse.fields.push(property)
             }
             else if (property == 'phoneNumber' && !phoneRegExp.test(user.phoneNumber)) {
@@ -250,33 +332,33 @@ router.post('/:version/users', (req, res) => {
         res.json(errorResponse);
         res.end();
     }
-    
+
     user = mongify(user, ['cityId']);
-    db.get('roles').findOne({name: 'User'}).then(role => {
+    db.get('roles').findOne({ name: 'User' }).then(role => {
         user.salt = genSalt();
         user.password = calcHash(user.password, user.salt);
         user.roleId = role._id;
-        db.get('users').insert(user).then(() => {            
+        db.get('users').insert(user).then(() => {
             req.session.user = user;
             res.end();
         }, err => {
             res.status(400);
             if (err.code == 11000 || err.code == 11001) {
                 let regex = /index\:\ (?:.*\.)?\$?(?:([_a-z0-9]*)(?:_\d*)|([_a-z0-9]*))\s*dup key/i;
-                let match =  err.message.match(regex);
+                let match = err.message.match(regex);
                 let indexName = match[1] || match[2];
                 errorResponse.fields.push(indexName);
                 errorResponse.reason = 'duplicate';
                 res.json(errorResponse);
             }
             res.end();
-        })      
+        })
     })
 })
 
 /*update user*/
-router.put('/:version/users', (req,res) => {
-    db.get('users').update({_id: monk.id(req.session.user.id)}, {$set: req.body}).then(() => {
+router.put('/:version/users', (req, res) => {
+    db.get('users').update({ _id: monk.id(req.session.user.id) }, { $set: req.body }).then(() => {
         res.sendStatus(200);
     }, (err) => {
         res.sendStatus(400);
@@ -303,8 +385,8 @@ router.post('/:version/session', (req, res) => {
 })
 
 /*logout*/
-router.delete('/:version/session', (req,res) => {
-    if(req.session) {
+router.delete('/:version/session', (req, res) => {
+    if (req.session) {
         req.session.destroy(err => {
             if (err) {
                 res.sendStatus(401);
@@ -319,7 +401,7 @@ router.delete('/:version/session', (req,res) => {
 
 /*get session status*/
 router.get('/:version/session/status', (req, res) => {
-    res.json({authorized: (req.session.user != undefined)});
+    res.json({ authorized: (req.session.user != undefined) });
     res.end();
 })
 

@@ -49,6 +49,11 @@ $(document).ready(function () {
       return 'Доставка окончена';
     }
   });
+  Handlebars.registerHelper("processing", function(id, status) {
+    if (status == 'processing') {
+      return '<a class="btn col xs12 s5 operatorConfirmButton" onclick="operatorConfirmButton(\'' + id  + '\');">Подтвердить</a>';
+    }
+  });
 });
 
 
@@ -153,12 +158,34 @@ function renderAccountPage() {
     })
     xhr('GET', '/api/v1/delivery/orders', {}, function (statusCode, orders) {
       if (statusCode < 400) {
-        renderTemplate(null, 'deliveryOrdersTemplate', orders, 'deliveryOrders');
-        $('.collapsible').collapsible();
+        if (orders.orders.length !== 0){
+          renderTemplate(null, 'deliveryOrdersTemplate', orders, 'deliveryOrders');
+          $('.collapsible').collapsible();
+        }
+        else {
+          renderTemplate(null, 'emptyDeliveryOrdersTemplate', {}, 'deliveryOrders');
+        }
         document.getElementById("deliveryTab").style.display = 'block';
       }
-      else
+      else {
         document.getElementById("deliveryTab").style.display = 'none';
+      }
+    })
+    xhr('GET', '/api/v1/operator/orders', {}, function (statusCode, orders) {
+      if (statusCode < 400) {
+        console.log(orders);
+        if (orders.orders.length !== 0){
+          renderTemplate(null, 'operatorOrdersTemplate', orders, 'operatorOrders');
+          $('.collapsible').collapsible();
+        }
+        else {
+          renderTemplate(null, 'emptyOperatorOrdersTemplate', {}, 'operatorOrders');
+        }
+        document.getElementById("operatorTab").style.display = 'block';
+      }
+      else {
+        document.getElementById("operatorTab").style.display = 'none';
+      }
     })
   }
   else {
@@ -680,6 +707,35 @@ function deliveryButton(orderId, status) {
     })
   }
 }
+
+function operatorConfirmButton(orderId, status) {
+  console.log(orderId);
+  xhr('PUT', '/api/v1/operator/orders', {'id': orderId}, function (statusCode) {
+    if (statusCode === 403) {
+      console.error('forbidden');
+      return;
+    }
+    if (statusCode === 404) {
+      console.error('order not found');
+      return;
+    }
+    renderAccountPage();
+  })
+}
+function operatorCancelButton(orderId) {
+  xhr('PUT', '/api/v1/operator/cancel', {'id': orderId}, function(statusCode) {
+    if (statusCode === 403) {
+      console.error('forbidden');
+      return;
+    }
+    if (statusCode === 404) {
+      console.error('order not found');
+      return;
+    }
+    renderAccountPage();
+  })
+}
+
 
 function goBack() {
   window.history.back();

@@ -50,7 +50,7 @@
 							</li>
 						</ul>
 
-						<ul class="tabs tabs-transparent tabs-fixed-width" id="navHorizontal-allstores" style="z-index: 1;">
+						<ul class="tabs tabs-transparent tabs-fixed-width navHorizontal" id="navHorizontal-allstores" style="z-index: 1;">
 							
 						</ul>
 						<script id="storetypelist-template" type="text/x-handlebars-template">
@@ -487,10 +487,11 @@
 							</li>
 						</ul>
 						
-						<ul class="tabs tabs-transparent tabs-fixed-width" id="navHorizontal-account">
+						<ul class="tabs tabs-transparent tabs-fixed-width navHorizontal">
 							<li class="tab"><a class='active' href="#userOrders">Заказы</a></li>
 							<li class="tab"><a href="#userSettings">Настройки</a></li>
 							<li class="tab" id="deliveryTab"><a href="#deliveryOrders">Доставка</a></li>
+							<li class="tab" id="operatorTab"><a href="#operatorOrders">Управление заказами</a></li>
 						</ul>
 
 					</div>
@@ -542,7 +543,8 @@
 					</div>
 				</div>
 				<div id="deliveryOrders">
-
+				</div>
+				<div id="operatorOrders">
 				</div>
 			</main>
 			<script id='emptyOrdersTemplate' type="text/x-handlebars-template">
@@ -579,7 +581,7 @@
 				<ul class="collapsible popout"  data-collapsible="expandable">
 					{{#each orders}}
 						<li>
-							<div class="collapsible-header row">
+							<div class="collapsible-header row {{this.status}}">
 								<div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div>
 								<div class='orderHeader orderStatus col xs4'>{{this.status}}</div>
 								<div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div>
@@ -606,6 +608,48 @@
 					{{/each}}
 				</ul>
 			</script>
+			<script id="emptyDeliveryOrdersTemplate" type="text/x-handlebars-template">
+				<div class='ordersEmpty'>Доставлять пока нечего</div>
+			</script>
+			<script id="operatorOrdersTemplate" type="text/x-handlebars-template">
+				<ul class="collapsible popout"  data-collapsible="expandable">
+					{{#each orders}}
+						<li>
+							<div class="collapsible-header row {{this.status}}">
+								<div class='orderHeader orderDate col xs4'>{{prettifyDate this.createdAt}}</div>
+								<div class='orderHeader orderStatus col xs4'>{{this.status}}</div>
+								<div class='orderHeader orderSum col xs4'>₴{{this.sum}}</div>
+							</div>
+							<div class="collapsible-body">
+								<p>Имя клиента: {{this.customerInfo.name}}</p>
+								<p>Номер телефона: {{this.customerInfo.phone_number}}</p>
+								<p>Адрес: {{this.customerInfo.street}}, {{this.customerInfo.house}}</p>
+								{{#orderItems}}
+									<ul class="collection with-header">
+										<li class="collection-header">{{name}}</li>
+										{{address}}
+										{{#items}}
+											<li class="collection-item">
+												<div class='item title'>{{name}}</div> 
+												<span class='secondary-content'>{{quantity}}x ₴{{price}}</span>
+											</li>
+										{{/items}}
+									</ul>
+								{{/orderItems}}
+								<div class='row'>
+									{{#processing this._id this.status}}
+									{{/processing}}
+									<a class='btn operatorCancelButton col xs12 s5 offset-s2' onclick='operatorCancelButton("{{this._id}}", "{{this.status}}");'>Отменить</a>
+								</div>
+							</div>
+						</li>
+					{{/each}}
+				</ul>
+			</script>
+			<script id="emptyOperatorOrdersTemplate" type="text/x-handlebars-template">
+				<div class='ordersEmpty'>Заказов еще нет</div>
+			</script>
+			
 		
 		
 		</div>
