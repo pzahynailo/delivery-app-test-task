@@ -1,1 +1,1 @@
-An attempt to create a SPA, mobile web application for a food delivery company. Made as a test task in 2017 for Junior position. 
+An attempt to create a SPA without frameworks. A mobile web application for a food delivery company. Food ordering, checkout, order management, couriers' page. Made as a test task in 2017 for Junior position. 
