@@ -1,1 +1,1 @@
-An attempt to create a SPA without frameworks. A mobile web application for a food delivery company. Food ordering, checkout, order management, couriers' page. Made as a test task in 2017 for a Junior position. (got me hired)
+I had a test task in 2017 to create a SPA without frameworks - a mobile web application for a food delivery company. Ordering food, checkout process, order management, couriers' administration page. I got hired as an early hire to a small start-up as my first job.
